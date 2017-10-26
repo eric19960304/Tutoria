@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Tutor{% endblock %}
+
+{% block content %}
+                <h2>{{tutor.profile.user.first_name}} {{tutor.profile.user.last_name}}</h2>
+                Tutor type: {{tutor_type}}<br/> 
+                Unavailable timeslot:<br/>
+                <ul>
+                        {% for each in unavailable_time %}
+                        <li>{{ each }}</li>
+                        {% endfor %}
+                </ul>
+                <form action="{% url 'book_tutor' tutor.id %}" method="POST">{% csrf_token %}
+                        select timeslot:
+                        {% if tutor_type == "private" %}
+                                <select name="booking_time">
+                                        <script type="text/javascript"> 
+                                                function pad(n, width, z) {
+                                                        z = z || '0';
+                                                        n = n + '';
+                                                        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+                                                }
+                                                // 8:30 - 18:30
+                                                var i=8;
+                                                var options="";
+                                                for(i=8;i<=17;i++){
+                                                        var t1 = pad(i, 2)+":00:00";
+                                                        var d1 = pad(i, 2)+":00 - "+pad(i+1, 2)+":00";
+                                                        
+                                                        options+="<option value=\""+t1+"\">" +d1+ "</option>";
+                                                }
+                                                document.write( options);
+                                </script>
+                                </select>
+                        {% else %}
+                                <select name="booking_time">
+                                        <script type="text/javascript"> 
+                                                function pad(n, width, z) {
+                                                        z = z || '0';
+                                                        n = n + '';
+                                                        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+                                                }
+                                                // 8:30 - 18:30
+                                                var i=8;
+                                                var options="";
+                                                for(i=8;i<=17;i++){
+                                                        var t1 = pad(i, 2)+":00:00";
+                                                        var t2 = pad(i, 2)+":30:00";
+                                                        var d1 = pad(i, 2)+":00 - "+pad(i, 2)+":30";
+                                                        var d2 = pad(i, 2)+":30 - "+pad(i+1, 2)+":00";
+                                                        
+                                                        options+="<option value=\""+t1+"\">" +d1+ "</option>";
+                                                        options+="<option value=\""+t2+"\">" +d2+ "</option>";
+                                                }
+                                                document.write( options);
+                                </script>
+                                </select>
+                        {% endif %}
+                        <br/>
+                        select date: <input type="date" name="booking_date"/><br/>
+                        Coupon code(if any): <input type="text" name="coupon_code" maxlength="12"/>
+                        <button type="submit">Book</button>
+                        <b style="color:red;">{{error_msg}}</b>
+                </form>
+
+{% endblock %}

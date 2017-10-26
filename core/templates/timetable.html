@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}My Timetable{% endblock %}
+
+{% block content %}
+    <script>
+        function check(){
+            var s = $("input[name=session_id]:checked");
+            return confirm("You selected "+s.length+" session(s), continue to cancel?");
+        }
+    </script>
+    All session:
+    <form action="{% url 'cancel_session' %}" method="post">
+    {% csrf_token %}
+        {% for s in session_list %}
+        <input type="checkbox" name="session_id" value="{{s.id}}"/>{{s.booked_date}} {{s.start_date}} - {{s.end_date}} <br/>
+        {% endfor %}
+        {{num}}
+        <button type="submit" onclick="return check()">Cancel Session</button>
+        
+    </form>
+{% endblock %}

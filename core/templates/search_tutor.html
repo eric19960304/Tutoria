@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Tutor{% endblock %}
+
+{% block content %}
+    <h1>Search Tutor</h1>
+    {% if zip_list %}
+        {% for tuple in zip_list %}
+            <hr/>
+            Tutor Name: {{tuple.0.profile.user.first_name}} ,{{tuple.0.profile.user.last_name}} <br/>
+            University: {{tuple.0.university.name}}<br/>
+            {% if tuple.1 == "private" %}
+                <b>Private tutor</b><br/>
+                Hourly rate: {{tuple.0.hourly_rate}}<br/>
+            {% else %}
+                <b>Contracted tutor</b><br/>
+            {% endif %}
+            Bio: {{tuple.0.bio}}<br/>
+            <a href="{% url 'book_tutor' tuple.0.id %}">Book this tutor</a>
+            
+        {% endfor %}
+    {% else %}
+        <h2>No tutor yet.</h2>
+    {% endif %}
+{% endblock %}
