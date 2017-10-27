@@ -140,3 +140,15 @@ class Coupon(models.Model):
     def __str__(self):
         return "Coupon "+str(self.id)
     
+    @classmethod
+    def validate(coupon_code):
+        c = Coupon.objects.filter(code=coupon_code).filter(used_session__isnull=True)
+        return len(c)!=0
+
+    @classmethod
+    def markCouponUsed(coupon_code, session):
+        c = Coupon.objects.filter(code=coupon_code).filter(used_session__isnull=True)
+        if len(c)!=0:
+            c[0].used_session = session
+            c[0].save()
+    
