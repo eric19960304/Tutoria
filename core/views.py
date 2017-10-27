@@ -96,8 +96,8 @@ def bookTutor(request, tutor_id):
         local_timezone = timezone(settings.TIME_ZONE)
         current = django_timezone.now()
         week_after = current + timedelta(days=7)
-        allTimeObj = UnavailableTimeslot.objects.filter(start_time__date__range=[current,week_after]).filter(tutor=tutor)
-        unavailable_time = [ t.start_time.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')+" - "+t.end_time.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M') for t in allTimeObj]
+        allUnavailableTimeslot = UnavailableTimeslot.objects.filter(tutor=tutor).filter(start_time__date__range=[current,week_after])
+        unavailable_time = [ t.start_time.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')+" - "+t.end_time.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M') for t in allUnavailableTimeslot]
 
         # get timeslot that already booked
         # ----------to be finished----------
