@@ -96,8 +96,8 @@ def bookTutor(request, tutor_id):
         local_timezone = timezone(settings.TIME_ZONE)
         current = django_timezone.now()
         week_after = current + timedelta(days=7)
-        allUnavailableTimeslot = UnavailableTimeslot.objects.filter(tutor=tutor).filter(start_time__date__range=[current,week_after])
-        unavailable_time = [ t.start_time.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')+" - "+t.end_time.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M') for t in allUnavailableTimeslot]
+        allTimeObj = UnavailableTimeslot.objects.filter(start_time__date__range=[current,week_after]).filter(tutor=tutor)
+        unavailable_time = [ t.start_time.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')+" - "+t.end_time.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M') for t in allTimeObj]
 
         # get timeslot that already booked
         # ----------to be finished----------
@@ -116,7 +116,7 @@ def bookTutor(request, tutor_id):
         if request.POST['coupon_code']!='':
             use_coupon = True
             coupon_code = request.POST['coupon_code']
-            if Coupon.validate( coupon_code ):
+            if Coupon.validate( str(coupon_code) ):
                 coupon_valid = True
         
         # handle coupon invalid error
@@ -146,7 +146,7 @@ def bookTutor(request, tutor_id):
             # since coupon need session object
             Coupon.markCouponUsed(request.POST['coupon_code'], s)
 
-        request.session['booking_msg1'] = "You have booked a session with "+tutor.profile.user.first_name+" " +tutor.profile.user.first_name
+        request.session['booking_msg1'] = "You have booked a session with "+tutor.profile.user.first_name+" " +tutor.profile.user.last_name
         request.session['booking_msg2'] = "Date: "+s.getBookedDate()+"  /  Timeslot: "+s.getStartTime()+" to "+s.getEndTime()
         request.session['booking_isPrivateTutor'] = isPrivateTutor
 
