@@ -113,7 +113,7 @@ def bookTutor(request, tutor_id):
         coupon_valid = False
         student = request.user.profile.student
         
-        if request.POST['coupon_code']!='':
+        if 'coupon_code' in request.POST and request.POST['coupon_code']!='':
             use_coupon = True
             coupon_code = request.POST['coupon_code']
             if Coupon.validate( str(coupon_code) ):

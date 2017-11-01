@@ -59,7 +59,9 @@
                         {% endif %}
                         <br/>
                         select date: <input type="date" name="booking_date"/><br/>
-                        Coupon code(if any): <input type="text" name="coupon_code" maxlength="12"/>
+                        {% if tutor_type == "private" %}
+                                Coupon code(if any): <input type="text" name="coupon_code" maxlength="12"/>
+                        {% endif %}
                         <button type="submit">Book</button>
                         <b style="color:red;">{{error_msg}}</b>
                 </form>

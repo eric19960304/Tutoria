@@ -32,6 +32,7 @@
       <a href="{% url 'view_wallet' %}" ><li>Wallet</li></a>
       <a href="{% url 'logout' %}"><li>Logout</li></a>  &nbsp;&nbsp;&nbsp; 
     {% else %}
+        <a href="{% url 'search_tutor' %}"><li>Search Tutor</li></a>
         <a href="{% url 'login' %}"><li>Login</li></a>
         <a href="{% url 'signup' %}"><li>Sign Up</li></a>
     {% endif %}
