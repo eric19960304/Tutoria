@@ -9,11 +9,12 @@
             return confirm("You selected "+s.length+" session(s), continue to cancel?");
         }
     </script>
+   
     All session:
     <form action="{% url 'cancel_session' %}" method="post">
     {% csrf_token %}
         {% for s in session_list %}
-            <input type="checkbox" name="session_id" value="{{s.id}}"/>{{s.booked_date}} {{s.start_date}} - {{s.end_date}} <br/>
+            <input type="checkbox" name="session_id" value="{{s.id}}"/>{{s.booked_date}} {{s.start_date}} - {{s.end_date}} ( with {{s.tutor.profile.user.first_name}} )<br/>
         {% endfor %}
         <button type="submit" onclick="return check()">Cancel Session</button>
         

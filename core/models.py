@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from pytz import timezone
 from tutoriabeta import settings
+from datetime import datetime, timedelta
 
 # https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
 
@@ -100,6 +101,7 @@ class UnavailableTimeslot(models.Model):
         t_start = self.start_time.astimezone(local_timezone)
         t_end = self.end_time.astimezone(local_timezone)
         return str(self.id)+": "+self.tutor.profile.user.username + ": " +t_start.strftime('%Y-%m-%d %H:%M')+" - "+t_end.strftime('%Y-%m-%d %H:%M')
+    
 
 class Session(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
@@ -140,14 +142,14 @@ class Coupon(models.Model):
     def __str__(self):
         return "Coupon "+str(self.id)
     
-    @classmethod
-    def validate(coupon_code):
-        c = Coupon.objects.filter(code=coupon_code).filter(used_session__isnull=True)
+    @staticmethod
+    def validate( coupon_code):
+        c = Coupon.objects.filter(code=coupon_code)
         return len(c)!=0
 
-    @classmethod
-    def markCouponUsed(coupon_code, session):
-        c = Coupon.objects.filter(code=coupon_code).filter(used_session__isnull=True)
+    @staticmethod
+    def markCouponUsed( coupon_code, session):
+        c = Coupon.objects.filter(code=coupon_code)
         if len(c)!=0:
             c[0].used_session = session
             c[0].save()
