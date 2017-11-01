@@ -1,7 +1,9 @@
 admin username: admin
 admin password: jamsandwich
 
-
+#solve github fetch / push conflict:
+git add -A
+then push / fetch
 
 #start django server
 python manage.py runserver
