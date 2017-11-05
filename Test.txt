@@ -1,8 +1,0 @@
-tes
-<<<<<<< HEAD
-asfs
-=======
-asfs
-skfnjdndjfn
-asf
->>>>>>> c521d179148bb0f9864dc1fd738eccae55e9fe1b
