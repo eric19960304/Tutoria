@@ -1,3 +1,7 @@
 tes
+<<<<<<< HEAD
 asfs
 skfnjdndjfn
+=======
+asf
+>>>>>>> eda05955ed02c4a4e8f90d47aa487820e2e17564
