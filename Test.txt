@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-abc
-=======
 tes
 asfs
 skfnjd
->>>>>>> 1588c7e58db5d767911757cf2cd7caaac56d5503
