@@ -158,6 +158,13 @@ footer{
 }
 
 
+#id_user_type{
+	list-style-type:none;
+}
 
+#id_user_type li{
+	display:inline;
+	margin-left: 5px;
+}
 
 
