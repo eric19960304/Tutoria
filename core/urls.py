@@ -15,4 +15,5 @@ urlpatterns = [
     url(r'^timetable/$', views.viewTimetable, name='view_timetable'),
     url(r'^cancel/$', views.cancelSession, name='cancel_session'),
     url(r'^wallet/$', views.viewWallet, name='view_wallet'),
+    url(r'^message/$', views.notification, name='view_notification'),
 ]

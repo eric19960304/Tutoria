@@ -79,7 +79,7 @@ nav#navigation ul{
 	box-sizing:border-box;
 	border-radius:10px;
 	list-style:none;
-	padding-bottom:15px;	
+	padding-bottom:5px;	
 	background-color:rgba(255,255,255,1.0);
 	position:relative;
 	top:5px;
@@ -95,7 +95,7 @@ nav#navigation ul{
 	opacity: 0.51;
 	background-color:rgba(255,255,255,1.00);
 	border-radius:10px;
-	color:rgba(102,0,201,1.00);
+	color:rgb(3, 0, 201);
 	position:relative;
 	top:5px;
 	padding-left:10px;
@@ -104,7 +104,7 @@ nav#navigation ul{
 
 /*hover effect*/
 nav#navigation ul a:hover li{
-	background-color:rgba(102,0,201,1.00);
+	background-color:rgb(3, 0, 201);
 	color:rgba(255,255,255,1.00);
 	box-sizing:border-box;
 	border:2px;
@@ -164,7 +164,15 @@ footer{
 
 #id_user_type li{
 	display:inline;
-	margin-left: 5px;
+	padding-left: 5px;
 }
 
 
+#logoutButton, #logoutButton, #signupButton{
+
+	padding-right: 30px;
+}
+
+#greeting{
+	padding-left: 10px;
+}

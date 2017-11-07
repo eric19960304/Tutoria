@@ -7,7 +7,7 @@
     {% if zip_list %}
         {% for tuple in zip_list %}
             <hr/>
-            Tutor Name: {{tuple.0.profile.user.first_name}} ,{{tuple.0.profile.user.last_name}} <br/>
+            Tutor Name: {{tuple.0.profile.getUserFullName}} <br/>
             University: {{tuple.0.university.name}}<br/>
             {% if tuple.1 == "private" %}
                 <b>Private tutor</b><br/>

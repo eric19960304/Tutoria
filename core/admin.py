@@ -17,4 +17,4 @@ admin.site.register(Wallet)
 admin.site.register(Transaction)
 admin.site.register(Session)
 admin.site.register(UnavailableTimeslot)
-
+admin.site.register(Notification)

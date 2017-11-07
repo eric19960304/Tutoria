@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}My Message{% endblock %}
+
+{% block content %}
+    {% if list %}
+    {% for each in list %}
+        <div id="msg_{{each.id}}"+>
+            <p>
+                message id: {{each.id}} <br/>
+                date: {{each.date}}<br/>
+                message: {{each.message}}
+            </p>
+        </div>
+        
+    {% endfor %}
+    {% else %}
+    <h2>No message yet.</h2>
+    {% endif %}
+{% endblock %}

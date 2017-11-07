@@ -30,13 +30,41 @@ class UserType(models.Model):
     def __str__(self):
         return str(self.id)+": "+self.user_type
 
+class Wallet(models.Model):
+    amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.0, blank=True, null=True)
+    def __str__(self):
+        return str(self.id)
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=20)
     user_type =  models.ForeignKey(UserType, on_delete=models.CASCADE)
+    wallet = models.OneToOneField(Wallet, on_delete=models.CASCADE)
     def __str__(self):
         return str(self.id)+": "+self.user.username+"'s profile"
+    @property
+    def getUserType(self):
+        return self.user_type.user_type
+    @property
+    def getUserFullName(self):
+        user=self.user
+        fname=""
+        if user.first_name != None:
+            fname += user.first_name
+
+        if user.first_name != None and user.last_name != None:
+            fname += " " + user.last_name
+        elif user.last_name != None:
+            fname += user.last_name
+        
+        return fname
+    @property
+    def hasNotification(self):
+        return len(Notification.objects.filter(profile=self))>0
+    @property
+    def getNotificationNum(self):
+        return len(Notification.objects.filter(profile=self))
+
 
 class Transaction(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE,related_name="profile_transaction" )
@@ -112,27 +140,21 @@ class Session(models.Model):
     status = models.CharField(max_length=10,default="booked")
     def __str__(self):
         return str(self.id)+": "+self.student.profile.user.username+" <-> "+self.tutor.profile.user.username
-    def getStartTime(self):
+    def getStartTimeStr(self):
         local_timezone = timezone(settings.TIME_ZONE)
         return self.start_date.astimezone(local_timezone).strftime('%H:%M')
-    def getEndTime(self):
+    def getEndTimeStr(self):
         local_timezone = timezone(settings.TIME_ZONE)
         return self.end_date.astimezone(local_timezone).strftime('%H:%M')
-    def getBookedDate(self):
+    def getBookedDateStr(self):
         local_timezone = timezone(settings.TIME_ZONE)
         return str(self.start_date.astimezone(local_timezone).date())
 
 
 class System(models.Model):  #single record table storing system info
-    wallet_amount = models.DecimalField(max_digits=20, decimal_places=2)
+    wallet = models.OneToOneField(Wallet, on_delete=models.CASCADE)
     def __str__(self):
         return "System info"
-
-class Wallet(models.Model):
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.0, blank=True, null=True)
-    def __str__(self):
-        return str(self.id)+": "+self.profile.user.username+"'s wallet"
 
 class Coupon(models.Model):
     code = models.CharField(max_length=12)
@@ -153,4 +175,13 @@ class Coupon(models.Model):
         if len(c)!=0:
             c[0].used_session = session
             c[0].save()
+
+class Notification(models.Model):
+    profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
+    message = models.CharField(max_length=1000)
+    date = models.DateTimeField()
+    checked_date = models.DateTimeField(null=True, blank=True)
+    def __str__(self):
+        return str(self.id)+": "+self.profile.user.username
+    
     

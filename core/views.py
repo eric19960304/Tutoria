@@ -12,6 +12,7 @@ from django.utils import timezone as django_timezone
 from pytz import timezone
 from django.db.models import Q
 from .handleTransaction import *
+from .factory import *
 
 def homepage(request):
     return render(request, 'homepage.html')
@@ -28,7 +29,10 @@ def searchTutor(request):
 
 @login_required
 def viewWallet(request):
-    wallet = profile=request.user.profile.wallet
+    if request.user.username =="admin":
+        return HttpResponse("You logged in as admin.")
+    
+    wallet = request.user.profile.wallet
     context={'amount':wallet.amount}
     return render(request, 'view_wallet.html', context)
 
@@ -59,6 +63,9 @@ def cancelSession(request):
 
 @login_required
 def viewTimetable(request):
+    if request.user.username =="admin":
+        return HttpResponse("You logged in as admin.")
+
     user_profile = request.user.profile
 
     if(user_profile.user_type.user_type=="tutor"):
@@ -69,17 +76,15 @@ def viewTimetable(request):
         # select user_profile = tutor or user_profile = student
         s = Session.objects.filter( Q( tutor= user_profile.tutor) | Q(student=user_profile.student))
 
-
     context={'session_list': s}
-
-    if len(s)==0:
-        return HttpResponse("You do not have any tutorial session yet.")
     
     return render(request, 'timetable.html', context)
 
 
 @login_required
 def bookTutor(request, tutor_id):
+    if request.user.username =="admin":
+        return HttpResponse("You logged in as admin.")
     
     # get tutor with tutor_id
     tutor = get_object_or_404(Tutor, pk=tutor_id)
@@ -147,7 +152,7 @@ def bookTutor(request, tutor_id):
             Coupon.markCouponUsed(request.POST['coupon_code'], s)
 
         request.session['booking_msg1'] = "You have booked a session with "+tutor.profile.user.first_name+" " +tutor.profile.user.last_name
-        request.session['booking_msg2'] = "Date: "+s.getBookedDate()+"  /  Timeslot: "+s.getStartTime()+" to "+s.getEndTime()
+        request.session['booking_msg2'] = "Date: "+s.getBookedDateStr()+"  /  Timeslot: "+s.getStartTimeStr()+" to "+s.getEndTimeStr()
         request.session['booking_isPrivateTutor'] = isPrivateTutor
 
         if isPrivateTutor:
@@ -186,39 +191,11 @@ def signup(request):
         if form.is_valid():
             user = form.save()
             user.save()
-            phone_no = form.cleaned_data.get('phone_no')
             user_type = form.cleaned_data['user_type']
-            if user_type=="student":
-                t = UserType.objects.get(user_type="student")
-            elif user_type=="tutor":
-                t = UserType.objects.get(user_type="tutor")
-            else:
-                t = UserType.objects.get(user_type="both")
-            pr = Profile(user=user,phone=phone_no,user_type=t)
-            pr.save()
-
-            w = Wallet(profile=pr)
-            w.save()
-
-            if user_type=="student":
-                s = Student(profile=pr)
-                s.save()
-            elif user_type=="tutor":
-                t = Tutor(profile=pr)
-                t.save()
-            else:
-                s = Student(profile=pr)
-                t = Tutor(profile=pr)
-                s.save()
-                t.save()
+            phone_no = form.cleaned_data.get('phone_no')
             
-            
-            if user_type=="student":
-                t = UserType.objects.get(user_type="student")
-            elif user_type=="tutor":
-                t = UserType.objects.get(user_type="tutor")
-            else:
-                t = UserType.objects.get(user_type="both")
+
+            createUser(user, user_type, phone_no)
 
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=user.username, password=raw_password)
@@ -228,6 +205,10 @@ def signup(request):
         form = SignUpForm()
     return render(request, 'signup.html', {'form': form})
 
+def notification(request):
+    notif_list = Notification.objects.filter(profile=request.user.profile)
 
+    context={'list':notif_list}
+    return render(request, 'notification.html', context)
 
 
