@@ -3,23 +3,37 @@
 {% block title %}My Timetable{% endblock %}
 
 {% block content %}
-    <script>
-        function check(){
-            var s = $("input[name=session_id]:checked");
-            return confirm("You selected "+s.length+" session(s), continue to cancel?");
-        }
-    </script>
    {% if session_list %}
-        All session:
+        All session:<br/><br/>
         <form action="{% url 'cancel_session' %}" method="post">
         {% csrf_token %}
             {% for s in session_list %}
                 <input type="checkbox" name="session_id" value="{{s.id}}"/>{{s.booked_date}} {{s.start_date}} - {{s.end_date}} ( with {{s.tutor.profile.getUserFullName}} )<br/>
             {% endfor %}
-            <button type="submit" onclick="return check()">Cancel Session</button>
-            
+            <br/><input type="checkbox" id="select_all" onclick="selectAll()"/> Select All<br/>
+            <button type="submit" onclick="return confirmCancelSession()">Cancel Session</button>
         </form>
+        
     {% else %}
         <p>You don't have any session yet.</p>
     {% endif %}
+    <script type="text/javascript">
+            function confirmCancelSession(){
+                var s = $("input[name=session_id]:checked");
+                return confirm("You selected "+s.length+" session(s), continue to cancel?");
+            }
+            function selectAll(){
+                var status = $("#select_all").prop('checked') == true;
+                if(status){
+                    $("input[type=checkbox]").each(function(){
+                        $(this).prop('checked', true);
+                    })
+                }else{
+                    $("input[type=checkbox]").each(function(){
+                        $(this).prop('checked',false);
+                    })
+                }
+
+            }
+    </script>
 {% endblock %}

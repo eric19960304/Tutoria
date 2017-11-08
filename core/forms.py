@@ -15,3 +15,8 @@ class SignUpForm(UserCreationForm):
         model = User
         fields = ('username', 'email', 'password1', 'password2','phone_no','user_type' )
         #fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2','phone_no','user_type' )
+
+
+class SearchTutorForm(forms.Form):
+    first_name = forms.CharField(label='Tutor First Name', max_length=30, required=False)
+    last_name = forms.CharField(label='Tutor Last Name', max_length=30, required=False)

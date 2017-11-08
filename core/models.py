@@ -17,6 +17,7 @@ class Tag(models.Model):
 
 class University(models.Model):
     name = models.CharField(max_length=50)
+    abbrev = models.CharField(max_length=10)
     def __str__(self):
         return str(self.id)+": "+self.name
 
@@ -48,8 +49,8 @@ class Wallet(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=20)
-    user_type =  models.ForeignKey(UserType, on_delete=models.CASCADE)
-    wallet = models.OneToOneField(Wallet, on_delete=models.CASCADE)
+    user_type =  models.ForeignKey(UserType)
+    wallet = models.OneToOneField(Wallet)
     def __str__(self):
         return str(self.id)+": "+self.user.username+"'s profile"
     @property
@@ -91,28 +92,28 @@ class Transaction(models.Model):
 class Course(models.Model):
     name = models.CharField(max_length=50)
     code = models.CharField(max_length=10)
-    university = models.ForeignKey(University, on_delete=models.CASCADE)
+    university = models.ForeignKey(University)
     def __str__(self):
         return str(self.id)+": "+self.name
 
 
 class Student(models.Model):
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
-    university = models.OneToOneField(University, on_delete=models.CASCADE, blank=True,null=True)
+    university = models.OneToOneField(University, blank=True,null=True)
     def __str__(self):
         return str(self.id)+": "+self.profile.user.username
 
 class Tutor(models.Model):
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
-    tutor_type =  models.ForeignKey(TutorType, on_delete=models.CASCADE, blank=True, null=True )
+    tutor_type =  models.ForeignKey(TutorType, blank=True, null=True )
     hourly_rate = models.IntegerField(blank=True,null=True) 
-    tags = models.ManyToManyField(Tag, blank=True)
-    university = models.ForeignKey(University, on_delete=models.CASCADE, blank=True,null=True)
-    courses = models.ManyToManyField(Course, blank=True)
+    tag = models.ManyToManyField(Tag, blank=True)
+    university = models.ForeignKey(University, blank=True,null=True)
+    course = models.ManyToManyField(Course, blank=True)
     bio = models.CharField(max_length=500, blank=True,null=True)
     def __str__(self):
         return str(self.id)+": "+self.profile.user.username
-    def checkProfileComplete():
+    def checkProfileComplete(self):
         percent = { 'tutor_type': 25, 'hourly_rate': 25, 'university': 15, 'bio': 15, 'courses': 10, 'tags': 10}
         total = 0
         if self.tutor_type:
@@ -128,6 +129,10 @@ class Tutor(models.Model):
         if self.tags:
             total += percent.get('tags', 0)
         return "%s"%(total)
+    @property
+    def getTutorType(self):
+        return self.tutor_type.tutor_type
+
         
 
 class UnavailableTimeslot(models.Model):
@@ -177,7 +182,7 @@ class Coupon(models.Model):
     code = models.CharField(max_length=12)
     expire_date = models.DateTimeField()
     used_date = models.DateTimeField(null=True, blank=True)
-    used_session = models.OneToOneField(Session, on_delete=models.CASCADE, null=True, blank=True)
+    used_session = models.OneToOneField(Session, null=True, blank=True)
     def __str__(self):
         return "Coupon "+str(self.id)
     

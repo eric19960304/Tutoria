@@ -3,7 +3,7 @@ from django.contrib.auth import login, authenticate
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
-from .forms import SignUpForm
+from .forms import SearchTutorForm, SignUpForm
 from .models import *
 from tutoriabeta import settings
 from datetime import datetime, timedelta
@@ -17,16 +17,7 @@ from .utility import *
 
 def homepage(request):
     return render(request, 'homepage.html')
-
-def searchTutor(request):
-    tutor_list = Tutor.objects.exclude(tutor_type__isnull=True) \
-                              .exclude(hourly_rate__isnull=True) \
-                              .exclude(university__isnull=True) \
-                              .exclude(bio__isnull=True)
-    type_list=[ tutor.tutor_type.tutor_type for tutor in tutor_list]
-    zip_list = zip(tutor_list, type_list)
-    context = {'zip_list': zip_list}
-    return render(request, 'search_tutor.html', context)
+    
 
 @login_required
 def viewWallet(request):
@@ -48,13 +39,13 @@ def cancelSession(request):
 
     for each in IDs:
         s = Session.objects.get(pk=each)
-        if s.tutor.tutor_type.tutor_type=="private":
+        if s.tutor.getTutorType=="private":
             hasPrivateTutor = True
             user_debit_amount = bookingRefund(s.student,s.tutor,s)
             
         s.delete()
     if hasPrivateTutor:
-        msg = 'Delete success. '+ str(user_debit_amount) + 'HKD has been refunded to your wallet.'
+        msg = 'Delete success. '+ str(user_debit_amount) + ' HKD has been refunded to your wallet.'
     else:
          msg = 'Delete success.'
 
@@ -81,6 +72,49 @@ def viewTimetable(request):
     
     return render(request, 'timetable.html', context)
 
+def searchTutor(request):
+    
+    form = SearchTutorForm()
+    if not request.GET:
+        context = {'form':form, 'tag':Tag.objects.all(), 'course': Course.objects.all() }
+        return render(request, 'search_tutor.html', context)
+    else:
+        tutor_list = Tutor.objects.exclude(tutor_type__isnull=True) \
+                              .exclude(hourly_rate__isnull=True) \
+                              .exclude(university__isnull=True) \
+                              .exclude(bio__isnull=True)
+
+        if 'tutor_type' in request.GET:
+            t = request.GET['tutor_type']
+            tutor_list = tutor_list.filter(tutor_type__tutor_type=t)
+        if 'university' in request.GET:
+            tutor_list = tutor_list.filter(university__abbrev=request.GET['university'])
+        if 'course' in request.GET:
+            course_list = request.GET.getlist('course')
+            for each in course_list:
+                tutor_list = tutor_list.filter(course__code=each)
+        if 'tag' in request.GET:
+            tag_list = request.GET.getlist('tag')
+            for each in tag_list:
+                tutor_list = tutor_list.filter(tag__name=each)
+        if len(request.GET['first_name'])>0 :
+            fn = request.GET['first_name']
+            tutor_list = tutor_list.filter(profile__user__first_name=fn)
+        if len(request.GET['last_name'])>0:
+            ln = request.GET['last_name']
+            tutor_list = tutor_list.filter(profile__user__last_name=ln)
+        if len(request.GET['min'])>0:
+            min = request.GET['min']
+            tutor_list = tutor_list.filter(hourly_rate__gte=min)
+        if len(request.GET['max'])>0:
+            max = request.GET['max']
+            tutor_list = tutor_list.filter(hourly_rate__lte=max)
+        if 'next7' in request.GET:
+            pass
+        
+
+        context = {'form':form, 'tag':Tag.objects.all(), 'course': Course.objects.all(),'tutor_list': tutor_list, 'searched': True}
+        return render(request, 'search_tutor.html', context)
 
 @login_required
 def bookTutor(request, tutor_id):
@@ -89,7 +123,7 @@ def bookTutor(request, tutor_id):
     
     # get tutor with tutor_id
     tutor = get_object_or_404(Tutor, pk=tutor_id)
-    typeOfTutor = tutor.tutor_type.tutor_type
+    typeOfTutor = tutor.getTutorType
 
     # tutor with tutor_id not exist
     if tutor not in Tutor.objects.exclude(tutor_type__isnull=True):
@@ -108,7 +142,11 @@ def bookTutor(request, tutor_id):
         # get timeslot that already booked
         # ----------to be finished----------
         
-        context = {'tutor': tutor, 'unavailable_time': unavailable_time,'tutor_type':  typeOfTutor}
+        context = {'tutor': tutor, 'unavailable_time': unavailable_time}
+        if typeOfTutor=="private":
+            amount = tutor.hourly_rate*1.05
+            context['fee']= '%.2f'%amount
+
         return render(request, 'book_tutor.html', context)
     
     else:
@@ -159,7 +197,7 @@ def bookTutor(request, tutor_id):
         request.session['booking_isPrivateTutor'] = isPrivateTutor
 
         if isPrivateTutor:
-            request.session['booking_msg3'] = str(credited_amount) +' has been deducted from your wallet.'
+            request.session['booking_msg3'] = ('%.2f'%credited_amount) +' has been deducted from your wallet.'
             if use_coupon and coupon_valid:
                 request.session['useCoupon']=True
             else:
