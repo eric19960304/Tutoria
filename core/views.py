@@ -13,6 +13,7 @@ from pytz import timezone
 from django.db.models import Q
 from .handleTransaction import *
 from .factory import *
+from .utility import *
 
 def homepage(request):
     return render(request, 'homepage.html')
@@ -117,6 +118,7 @@ def bookTutor(request, tutor_id):
         use_coupon = False
         coupon_valid = False
         student = request.user.profile.student
+        credited_amount = 0
         
         if 'coupon_code' in request.POST and request.POST['coupon_code']!='':
             use_coupon = True
@@ -143,16 +145,17 @@ def bookTutor(request, tutor_id):
             date_end = date_start+timedelta(hours=1)
         else:
             date_end = date_start+timedelta(minutes=30)
-
-        s = Session(student=student,tutor=tutor,booking_date=django_timezone.now(), start_date=date_start,end_date=date_end)
+        #change timezone
+        local_timezone = timezone(settings.TIME_ZONE)
+        s = Session(student=student,tutor=tutor,booking_date=django_timezone.now(), start_date=date_start.astimezone(local_timezone),end_date=date_end.astimezone(local_timezone))
         s.save()
 
         if isPrivateTutor and coupon_valid and use_coupon:
             # since coupon need session object
             Coupon.markCouponUsed(request.POST['coupon_code'], s)
 
-        request.session['booking_msg1'] = "You have booked a session with "+tutor.profile.user.first_name+" " +tutor.profile.user.last_name
-        request.session['booking_msg2'] = "Date: "+s.getBookedDateStr()+"  /  Timeslot: "+s.getStartTimeStr()+" to "+s.getEndTimeStr()
+        request.session['booking_msg1'] = "You have booked a session with "+tutor.profile.getUserFullName
+        request.session['booking_msg2'] = "Date: "+s.getBookedDateStr+"  /  Timeslot: "+s.getStartTimeStr+" to "+s.getEndTimeStr
         request.session['booking_isPrivateTutor'] = isPrivateTutor
 
         if isPrivateTutor:
@@ -163,6 +166,10 @@ def bookTutor(request, tutor_id):
                 request.session['useCoupon']=False
         else:
             request.session['booking_msg3'] = None
+
+
+        sendEmailToTutor(s)
+        sendNotification(s, isPrivateTutor, credited_amount)
 
         return HttpResponseRedirect(reverse('after_booked'))
 
@@ -176,7 +183,7 @@ def afterBooked(request):
     isPrivateTutor = request.session['booking_isPrivateTutor']
     context={'msg1':msg1,'msg2':msg2}
 
-    print (isPrivateTutor)
+    
     
     if isPrivateTutor:
         context['msg3'] = msg3
@@ -206,7 +213,7 @@ def signup(request):
     return render(request, 'signup.html', {'form': form})
 
 def notification(request):
-    notif_list = Notification.objects.filter(profile=request.user.profile)
+    notif_list = Notification.objects.filter(profile=request.user.profile).order_by('-date')
 
     context={'list':notif_list}
     return render(request, 'notification.html', context)

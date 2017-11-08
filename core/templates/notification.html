@@ -9,10 +9,11 @@
             <p>
                 message id: {{each.id}} <br/>
                 date: {{each.date}}<br/>
-                message: {{each.message}}
+                message: <br/>
+                {{each.message}}
             </p>
         </div>
-        
+        <hr/>
     {% endfor %}
     {% else %}
     <h2>No message yet.</h2>

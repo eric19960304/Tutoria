@@ -121,3 +121,4 @@ USE_TZ = True
 STATIC_URL = '/static/'
 LOGIN_REDIRECT_URL = 'homepage'
 LOGIN_URL = 'login'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

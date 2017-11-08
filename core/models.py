@@ -33,7 +33,17 @@ class UserType(models.Model):
 class Wallet(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.0, blank=True, null=True)
     def __str__(self):
-        return str(self.id)
+        if len(Wallet.objects.exclude(profile=None).filter(pk=self.id))>0:  # not system wallet
+            return str(self.id)+': ' +self.profile.user.username
+        else:
+            return str(self.id)+": System wallet"
+    def credit(self, credit_amount): #decrease amount
+        self.amount -= credit_amount
+    def debit(self, debit_amount):  #increase amount
+        self.amount += debit_amount
+    @staticmethod
+    def getSystemWallet():
+        return Wallet.objects.filter(profile=None)[0]
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -140,15 +150,22 @@ class Session(models.Model):
     status = models.CharField(max_length=10,default="booked")
     def __str__(self):
         return str(self.id)+": "+self.student.profile.user.username+" <-> "+self.tutor.profile.user.username
+    @property
     def getStartTimeStr(self):
         local_timezone = timezone(settings.TIME_ZONE)
         return self.start_date.astimezone(local_timezone).strftime('%H:%M')
+    @property
     def getEndTimeStr(self):
         local_timezone = timezone(settings.TIME_ZONE)
         return self.end_date.astimezone(local_timezone).strftime('%H:%M')
+    @property
     def getBookedDateStr(self):
         local_timezone = timezone(settings.TIME_ZONE)
-        return str(self.start_date.astimezone(local_timezone).date())
+        return self.start_date.astimezone(local_timezone).strftime('%e %b %Y')
+    @property
+    def getBookingDateStr(self):
+        local_timezone = timezone(settings.TIME_ZONE)
+        return self.booking_date.astimezone(local_timezone).strftime('%e %b %Y, %H:%M')
 
 
 class System(models.Model):  #single record table storing system info
@@ -177,7 +194,7 @@ class Coupon(models.Model):
             c[0].save()
 
 class Notification(models.Model):
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     message = models.CharField(max_length=1000)
     date = models.DateTimeField()
     checked_date = models.DateTimeField(null=True, blank=True)

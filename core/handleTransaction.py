@@ -7,14 +7,16 @@ def bookingCredit(student, tutor, use_coupon=False):
             user_credit_amount = tutor.hourly_rate*1.05
         else:
             user_credit_amount = tutor.hourly_rate
+        
         wallet = student.profile.wallet
+        
         if wallet.amount < user_credit_amount:
             return -1 #negative number indicates booking failure
         else:
-            wallet.amount -= Decimal(user_credit_amount)
+            wallet.credit(Decimal(user_credit_amount))
             wallet.save()
-            sys_wallet = System.objects.all()[0]
-            sys_wallet.wallet_amount += Decimal(user_credit_amount)
+            sys_wallet = Wallet.getSystemWallet()
+            sys_wallet.debit(Decimal(user_credit_amount))
             sys_wallet.save()
             return user_credit_amount
     else:
@@ -37,11 +39,11 @@ def bookingRefund(student, tutor, session):
         
         # debit user wallet
         wallet = student.profile.wallet
-        wallet.amount += Decimal(user_debit_amount)
+        wallet.debit( Decimal(user_debit_amount) )
         wallet.save()
         # credit system wallet
-        sys_wallet = System.objects.all()[0]
-        sys_wallet.wallet_amount -= Decimal(user_debit_amount)
+        sys_wallet = Wallet.getSystemWallet()
+        sys_wallet.credit( Decimal(user_debit_amount) )
         sys_wallet.save()
 
         return user_debit_amount
