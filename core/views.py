@@ -130,34 +130,41 @@ def bookTutor(request, tutor_id):
     if tutor not in Tutor.objects.exclude(tutor_type__isnull=True):
         return HttpResponse("This Tutor not available.")
     
+    # get tutor unavaliableTimeslot in next 7 date
+    current = getCurrentDatetime()
+    week_after = current + timedelta(days=7)
+    allTimeObj = Session.objects.filter(isBlackedout=True).filter(start_date__date__range=[current,week_after]).filter(tutor=tutor)
+    unavailable_time = [ getDatetimeStr(t.start_date)+" - "+getDatetimeStr(t.end_date) for t in allTimeObj]
+
+    # get timeslot that already booked
+    # ----------to be finished----------
+    
+    context = {'tutor': tutor, 'unavailable_time': unavailable_time}
+    if typeOfTutor=="private":
+        amount = tutor.hourly_rate*1.05
+        context['fee']= '%.2f'%amount
+
+
     if not request.POST:
         # form not submitted
-
-        # get tutor unavaliableTimeslot in next 7 date
-        current = getCurrentDatetime()
-        week_after = current + timedelta(days=7)
-        allTimeObj = Session.objects.filter(isBlackedout=True).filter(start_date__date__range=[current,week_after]).filter(tutor=tutor)
-        unavailable_time = [ getDatetimeStr(t.start_date)+" - "+getDatetimeStr(t.end_date) for t in allTimeObj]
-
-        # get timeslot that already booked
-        # ----------to be finished----------
-        
-        context = {'tutor': tutor, 'unavailable_time': unavailable_time}
-        if typeOfTutor=="private":
-            amount = tutor.hourly_rate*1.05
-            context['fee']= '%.2f'%amount
-
         return render(request, 'book_tutor.html', context)
     
     else:
         # form submitted
-
         isPrivateTutor = (typeOfTutor=="private")
         use_coupon = False
         coupon_valid = False
         student = request.user.profile.student
         credited_amount = 0
+        booking_date = request.POST['booking_date']
+        booking_time = request.POST['booking_time']
+        date_start = parse_datetime(booking_date+"T"+booking_time)
+        if isPrivateTutor:
+            date_end = date_start+timedelta(hours=1)
+        else:
+            date_end = date_start+timedelta(minutes=30)
         
+        # check coupon
         if 'coupon_code' in request.POST and request.POST['coupon_code']!='':
             use_coupon = True
             coupon_code = request.POST['coupon_code']
@@ -176,13 +183,12 @@ def bookTutor(request, tutor_id):
                 context['error_msg']="Insufficient wallet balance."
                 return render(request, 'book_tutor.html', context)
         
-        booking_date = request.POST['booking_date']
-        booking_time = request.POST['booking_time']
-        date_start = parse_datetime(booking_date+"T"+booking_time)
-        if isPrivateTutor:
-            date_end = date_start+timedelta(hours=1)
-        else:
-            date_end = date_start+timedelta(minutes=30)
+        booking_time_valid = validateBookingDatetime(date_start, date_end, tutor)
+        
+        if not booking_time_valid :
+            context['error_msg']="The timeslot you slected is unavailable. Please select another."
+            return render(request, 'book_tutor.html', context)
+
         s = Session(student=student,tutor=tutor,booking_date=getCurrentDatetime(), start_date=toLocalDatetime(date_start),end_date=toLocalDatetime(date_end),status="booked")
         s.save()
 

@@ -4,7 +4,7 @@ from tutoriabeta import settings
 from pytz import timezone
 from datetime import datetime, timedelta
 from django.utils.dateparse import parse_datetime
-from .models import Notification
+from .models import *
 
 
 def toLocalDatetime(date):
@@ -12,6 +12,7 @@ def toLocalDatetime(date):
     return date.astimezone(local_timezone)
 
 
+# datetime related function
 def getCurrentDatetime():
     local_timezone = timezone(settings.TIME_ZONE)
     return datetime.now().astimezone(local_timezone)
@@ -36,9 +37,12 @@ def getDateStr2(date):
     local_timezone = timezone(settings.TIME_ZONE)
     return date.astimezone(local_timezone).strftime('%e %b %Y')
 
+def getNextHalfHour(date):
+    delta = timedelta(minutes=30)
+    return date + (datetime.min - date) % delta
 
 
-
+# other function that do not want to put in views
 def sendEmailToTutor(s):
     msg_body = 'Dear '+s.tutor.profile.user.username+",\n"+\
                'Student with username <'+s.student.profile.user.username+ '>'+\
@@ -84,3 +88,11 @@ def sendNotification(s,isPrivateTutor, credited_amount):
 
     t_n = Notification(profile = s.tutor.profile, message = tutor_msg, date=now)
     t_n.save()
+
+def validateBookingDatetime(date_start, date_end, tutor):
+    session_list = Session.objects.exclude(end_date__lte = date_start).exclude(start_date__gte=date_end)
+    if len(session_list)>0:
+        print("booking date invalid: {}".format(session_list))
+        return False
+    else:
+        return True

@@ -12,14 +12,17 @@
 {% endif %}
 
 <h2>{{tutor.profile.getUserFullName}}</h2>
-Tutor type: {{tutor.getTutorType}} <br/> 
-Unavailable timeslot: <br/>
-<ul>
-    {% for each in unavailable_time %}
-        <li>{{ each }}</li>
-    {% endfor %}
-</ul>
-<form action="{% url 'book_tutor' tutor.id %}" method="POST">{% csrf_token %} select date:
+Tutor type: {{tutor.getTutorType}} <br/>
+{% if unavailable_time %} 
+    Unavailable timeslot: <br/>
+    <ul>
+        {% for each in unavailable_time %}
+            <li>{{ each }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+<form action="{% url 'book_tutor' tutor.id %}" method="POST">
+    {% csrf_token %} select date:
     <input type="date" name="booking_date" /><br/>
     select timeslot: 
     {% if tutor.getTutorType == "private" %}
@@ -73,8 +76,7 @@ Unavailable timeslot: <br/>
     {% else %}
         <button type="submit">Book</button>
     {% endif %}
-    <br/>
-    <b style="color:red;">{{error_msg}}</b>
+    <b style="color:red;">Error: {{error_msg}}</b>
 </form>
 
 

@@ -144,7 +144,14 @@ class Session(models.Model):
     status = models.CharField(max_length=10,blank=True,null=True)
     isBlackedout = models.BooleanField(default=False)
     def __str__(self):
-        return str(self.id)+": "+self.student.profile.user.username+" <-> "+self.tutor.profile.user.username
+        local_timezone = timezone(settings.TIME_ZONE)
+        s_d = self.start_date.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')
+        n_d = self.end_date.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')
+        try:
+            return str(self.id)+": "+self.student.profile.user.username+" <-> "+self.tutor.profile.user.username +\
+                    ", " + s_d + " - " + n_d
+        except AttributeError:
+            return str(self.id)+": "+self.tutor.profile.user.username+'\'s '+"Blackedout ("+s_d+" - "+n_d+")"
     @property
     def getStartTimeStr(self):
         local_timezone = timezone(settings.TIME_ZONE)
