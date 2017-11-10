@@ -108,10 +108,14 @@ def searchTutor(request):
             tutor_list = tutor_list.filter(hourly_rate__lte=max)
         if 'next7' in request.GET:
             pass
-        
 
-        context = {'tag':Tag.objects.all(), 'course': Course.objects.all(),'tutor_list': tutor_list, 'searched': True}
+        context = {'tag':Tag.objects.all(), 'course': Course.objects.all(),'tutor_list': tutor_list}
         return render(request, 'search_result.html', context)
+
+def viewTutorProfile(request, tutor_id):
+    tutor = get_object_or_404(Tutor, pk=tutor_id)
+    context= {'tutor':tutor}
+    return render(request, 'view_tutor_profile.html', context)
 
 @login_required
 def bookTutor(request, tutor_id):

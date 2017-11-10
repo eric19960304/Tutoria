@@ -4,21 +4,18 @@
 
 {% block content %}
 
-    {% if searched %}
     
         <h2>Search Result</h2>
         {% if tutor_list %}
             {% for tutor in tutor_list %}
                 <hr/>
-                Tutor Name: {{tutor.profile.getUserFullName}} <br/>
-                University: {{tutor.university.name}}<br/>
+                {{tutor.profile.getUserFullName}} <br/>
+                {{tutor.university.name}}<br/>
                 {% if tutor.getTutorType == "private" %}
-                    <b>Private tutor</b><br/>
                     Hourly rate: {{tutor.hourly_rate}}<br/>
-                {% else %}
-                    <b>Contracted tutor</b><br/>
                 {% endif %}
-                Bio: {{tutor.bio}}<br/>
+
+                <a href="{% url 'view_tutor_profile' tutor.id %}">View detailed profile</a> / 
                 <a href="{% url 'book_tutor' tutor.id %}">Book this tutor</a>
                 
             {% endfor %}
@@ -27,11 +24,10 @@
             <p>No match</p>
         {% endif %}
         <hr/>
-    {% endif %}
 
         <div class="form-group">
         <div class="col-xs-7">
-        <a href="{% url 'search_tutor' %}" >Back</a>
+        <button onclick="location.href='{% url 'search_tutor' %}';" >Back to search</button>
         </div>
     </div>
 

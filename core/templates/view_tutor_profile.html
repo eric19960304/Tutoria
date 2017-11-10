@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Tutor's Profile{% endblock %}
+
+{% block content %}
+
+        {% if tutor %}
+            <h2>Tutor's Profile</h2>
+            <hr/>
+            {{tutor.profile.getUserFullName}} <br/>
+            {{tutor.university.name}}<br/>
+            {% if tutor.getTutorType == "private" %}
+                <b>Private tutor</b><br/>
+                Hourly rate: {{tutor.hourly_rate}}<br/>
+            {% else %}
+                <b>Contracted tutor</b><br/>
+            {% endif %}
+
+            <a href="{% url 'book_tutor' tutor.id %}">Book this tutor</a>
+                
+        {% else %}
+            <hr/>
+            <p>Invalid tutor id</p>
+        {% endif %}
+        <hr/>
+
+        <div class="form-group">
+        <div class="col-xs-7">
+        <button onclick="window.history.back();" >Back to search result</button>
+        </div>
+    </div>
+
+{% endblock %}
