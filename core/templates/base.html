@@ -18,13 +18,10 @@
 <body>
     <div id="wrapper">
         <header>
-            <div id="bar">
-                Tutoria
-            </div>
             <nav id="navigation">
                 <ul>
                     <a href="{% url 'homepage' %}">
-                        <li>Home</li>
+                        <li>Tutoria</li>
                     </a>
                     {% if user.is_authenticated %}
                     <a href="{% url 'search_tutor' %}">

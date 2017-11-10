@@ -111,7 +111,7 @@ def searchTutor(request):
         
 
         context = {'tag':Tag.objects.all(), 'course': Course.objects.all(),'tutor_list': tutor_list, 'searched': True}
-        return render(request, 'search_tutor.html', context)
+        return render(request, 'search_result.html', context)
 
 @login_required
 def bookTutor(request, tutor_id):

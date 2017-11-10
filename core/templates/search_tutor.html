@@ -4,64 +4,100 @@
 
 {% block content %}
     
-    {% if searched %}
-    
-        <h2>Search Result</h2>
-        {% if tutor_list %}
-            {% for tutor in tutor_list %}
-                <hr/>
-                Tutor Name: {{tutor.profile.getUserFullName}} <br/>
-                University: {{tutor.university.name}}<br/>
-                {% if tutor.getTutorType == "private" %}
-                    <b>Private tutor</b><br/>
-                    Hourly rate: {{tutor.hourly_rate}}<br/>
-                {% else %}
-                    <b>Contracted tutor</b><br/>
-                {% endif %}
-                Bio: {{tutor.bio}}<br/>
-                <a href="{% url 'book_tutor' tutor.id %}">Book this tutor</a>
-                
-            {% endfor %}
-        {% else %}
-            <hr/>
-            <p>No match</p>
-        {% endif %}
-        <hr/>
-    {% endif %}
+
     <h2>Search Tutor</h2>
     <hr/>
-    <form method="get" action="{% url 'search_tutor' %}">
-        Hourly rate range:
-        <input type="number" name="min"> to 
-        <input type="number" name="max"><br/>
-        Tutor type:
+    <form method="get" action="{% url 'search_tutor' %}" id="form_element">
+
+    <br/>
+    <div class="form-group">
+        <label class="control-label col-xs-3">Hourly Range:</label>
+        <div class="col-xs-7">
+        <input type="number"  name="min"> to 
+        <input type="number" name="max">
+        <br/><br/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-3">Tutor Type:</label>
+        <div class="col-xs-7">
         <select name="tutor_type">
                 <option disabled selected value> -- </option>
-                <option value="private">Private tutor</option>
-                <option value="contracted">Contracted tutor</option>
-        </select><br/>
-        University:
+                <option value="private">Private Tutor</option>
+                <option value="contracted">Contracted Tutor</option>
+        </select>
+        <br/><br/>        
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-3">University:</label>
+        <div class="col-xs-7">
         <select name="university">
             <option disabled selected value> -- </option>
             <option value="HKU">HKU</option>
             <option value="CUHK">CUHK</option>
-        </select><br/>
-        Course:
+        </select>
+        <br/><br/>        
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-3">Course:</label>
+        <div class="col-xs-7">
         <select name="course" multiple size="3">
             {% for c in course %}
                 <option value="{{c.code}}">{{c.code}} {{c.name}}</option>
             {% endfor %}
-        </select><br/>
-        Subject tag:
+        </select>
+        <br/><br/>        
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-3">Subject Tag:</label>
+        <div class="col-xs-7">
         <select name="tag" multiple  size="3">
             {% for t in tag %}
                 <option value="{{t.name}}">{{t.name}}</option>
             {% endfor %}
-        </select><br/>
-        First name: <input name="first_name" type="text" maxlength="30"><br/>
-        Last name: <input name="last_name" type="text" maxlength="30"><br/>
-        <input type="checkbox" name="next7"/>at least one available timeslot in the next 7 days<br/>
-        
-        <input type="submit" value="Submit" />
+        </select>
+        <br/><br/>        
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <label class="control-label col-xs-3">First Name:</label>
+        <div class="col-xs-7">
+        <input name="first_name" type="text" maxlength="30">
+        <br/><br/>        
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <label class="control-label col-xs-3">Last Name:</label>
+        <div class="col-xs-7">
+        <input name="last_name" type="text" maxlength="30">
+        <br/><br/>        
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-xs-7">
+        <input type="checkbox" name="next7"/>at least one available timeslot in the next 7 days<br/><br/>      
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-xs-7">
+        <input type="submit" value="Submit" />    
+        </div>
+    </div>
+
     </form>
 {% endblock %}
