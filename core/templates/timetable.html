@@ -8,10 +8,13 @@
         <form action="{% url 'cancel_session' %}" method="post">
         {% csrf_token %}
             {% for s in session_list %}
-                <input type="checkbox" name="session_id" value="{{s.id}}"/>{{s.booked_date}} {{s.start_date}} - {{s.end_date}} ( with {{s.tutor.profile.getUserFullName}} )<br/>
+                <input type="checkbox" name="session_id" value="{{s.id}}"/>{{s.getBookedDateStr}}:  
+                {{s.getStartTimeStr}} - {{s.getEndTimeStr}} 
+                ( with {{s.tutor.profile.getUserFullName}} )<br/>
             {% endfor %}
-            <br/><input type="checkbox" id="select_all" onclick="selectAll()"/> Select All<br/>
-            <button type="submit" onclick="return confirmCancelSession()">Cancel Session</button>
+            <input type="checkbox" id="select_all" onclick="selectAll()"/> Select All 
+            <br/><br/>
+            <input type="submit" value="Cancel Session">
         </form>
         
     {% else %}

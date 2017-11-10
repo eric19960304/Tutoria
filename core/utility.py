@@ -96,3 +96,10 @@ def validateBookingDatetime(date_start, date_end, tutor):
         return False
     else:
         return True
+
+def checkFairBook(date_start, date_end, tutor, student):
+    session_list = Session.objects.filter(isBlackedout=False).filter(tutor=tutor).filter(student=student).filter(start_date__date=date_start.date())
+    if len(session_list)>0:
+        return False
+    else:
+        return True

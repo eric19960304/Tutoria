@@ -189,8 +189,16 @@ def bookTutor(request, tutor_id):
             context['error_msg']="The timeslot you slected is unavailable. Please select another."
             return render(request, 'book_tutor.html', context)
 
-        s = Session(student=student,tutor=tutor,booking_date=getCurrentDatetime(), start_date=toLocalDatetime(date_start),end_date=toLocalDatetime(date_end),status="booked")
-        s.save()
+        fair_book = checkFairBook(date_start, date_end, tutor, student)
+
+        if not fair_book :
+            context['error_msg']="Student only allowed booking ONE timeslot for the same tutor for any single day."
+            return render(request, 'book_tutor.html', context)
+
+        # if for safety
+        if booking_time_valid and fair_book:
+            s = Session(student=student,tutor=tutor,booking_date=getCurrentDatetime(), start_date=toLocalDatetime(date_start),end_date=toLocalDatetime(date_end),status="booked")
+            s.save()
 
         if isPrivateTutor and coupon_valid and use_coupon:
             # since coupon need session object
@@ -206,8 +214,6 @@ def bookTutor(request, tutor_id):
                 request.session['useCoupon']=True
             else:
                 request.session['useCoupon']=False
-        else:
-            request.session['booking_msg3'] = None
 
 
         sendEmailToTutor(s)

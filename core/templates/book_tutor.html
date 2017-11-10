@@ -23,10 +23,11 @@ Tutor type: {{tutor.getTutorType}} <br/>
 {% endif %}
 <form action="{% url 'book_tutor' tutor.id %}" method="POST">
     {% csrf_token %} select date:
-    <input type="date" name="booking_date" /><br/>
+    <input id="booking_date" type="date" name="booking_date" /><br/>
     select timeslot: 
     {% if tutor.getTutorType == "private" %}
-        <select name="booking_time">
+        <select id="booking_time" name="booking_time">
+            <option disabled selected value="notSelected"> -- </option>
             <script type="text/javascript"> 
                 function pad(n, width, z) {
                     z = z || '0';
@@ -46,7 +47,8 @@ Tutor type: {{tutor.getTutorType}} <br/>
             </script>
         </select>
     {% else %}
-        <select name="booking_time">
+        <select id="booking_time" name="booking_time">
+            <option disabled selected value="notSelected"> -- </option>
             <script type="text/javascript"> 
                 function pad(n, width, z) {
                     z = z || '0';
@@ -72,12 +74,26 @@ Tutor type: {{tutor.getTutorType}} <br/>
     <br/> 
     {% if tutor.getTutorType == "private" %} 
         Coupon code(if any): <input type="text" name="coupon_code" maxlength="12" /> <br/>
-        <button type="submit" onclick="return confirmBookSession()">Book</button>
+        <button type="submit" onclick="return validateFrom(); return confirmBookSession();">Book</button>
     {% else %}
         <button type="submit">Book</button>
     {% endif %}
-    <b style="color:red;">Error: {{error_msg}}</b>
+    <br/><br/>
+    {% if error_msg %} 
+        <b style="color:red;">Error: {{error_msg}}</b>
+    {% endif %}
 </form>
-
+<script type="text/javascript">
+    function validateFrom(){
+        var selectedTime = $('#booking_time').val();
+        var selectedDate = $('#booking_date').val();
+        if(!selectedTime || selectedDate==''){
+            alert("Please select the date and time!");
+            return false;
+        }else{
+            return true;
+        }
+    }
+</script>
 
 {% endblock %}
