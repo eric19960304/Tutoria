@@ -1,0 +1,37 @@
+admin username: admin
+admin password: jamsandwich
+
+#solve github fetch / push conflict:
+git add -A
+then push / fetch
+
+#start django server
+python manage.py runserver
+
+#create app in the same directory with manage.py
+python manage.py startapp [apps_name]
+
+# select all record from table User
+User.objects.all()
+
+# select record which from User where 'student' referenced field is null
+User.objects.all().exclude(is_staff=True).filter(student__isnull=True)
+
+# select all records from User where it is not a staff/admin
+User.objects.all().exclude(is_staff=True)
+
+
+{% if user.is_authenticated %}
+{% else %}
+{% endif %}
+
+#get current time
+from django.utils import timezone as django_timezone
+django_timezone.now()
+
+
+#change timezone to HK
+from tutoriabeta import settings
+from pytz import timezone
+local_timezone = timezone(settings.TIME_ZONE)
+date_var.astimezone(local_timezone)

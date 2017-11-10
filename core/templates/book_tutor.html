@@ -1,0 +1,81 @@
+{% extends 'base.html' %} 
+{% block title %}Book Tutor{% endblock %} 
+
+{% block content %}
+
+{% if tutor.getTutorType == "private" %} 
+    <script type="text/javascript">
+        function confirmBookSession() {
+            return confirm("HKD {{fee}} will be deducted from your wallet, continue?");
+        }
+    </script> 
+{% endif %}
+
+<h2>{{tutor.profile.getUserFullName}}</h2>
+Tutor type: {{tutor.getTutorType}} <br/> 
+Unavailable timeslot: <br/>
+<ul>
+    {% for each in unavailable_time %}
+        <li>{{ each }}</li>
+    {% endfor %}
+</ul>
+<form action="{% url 'book_tutor' tutor.id %}" method="POST">{% csrf_token %} select date:
+    <input type="date" name="booking_date" /><br/>
+    select timeslot: 
+    {% if tutor.getTutorType == "private" %}
+        <select name="booking_time">
+            <script type="text/javascript"> 
+                function pad(n, width, z) {
+                    z = z || '0';
+                    n = n + '';
+                    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+                }
+                // 8:30 - 18:30
+                var i = 8;
+                var options = "";
+                for (i = 8; i <= 17; i++) {
+                    var t1 = pad(i, 2) + ":00:00";
+                    var d1 = pad(i, 2) + ":00 - " + pad(i + 1, 2) + ":00";
+
+                    options += "<option value=\"" + t1 + "\">" + d1 + "</option>";
+                }
+                document.write(options);
+            </script>
+        </select>
+    {% else %}
+        <select name="booking_time">
+            <script type="text/javascript"> 
+                function pad(n, width, z) {
+                    z = z || '0';
+                    n = n + '';
+                    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+                }
+                // 8:30 - 18:30
+                var i = 8;
+                var options = "";
+                for (i = 8; i <= 17; i++) {
+                    var t1 = pad(i, 2) + ":00:00";
+                    var t2 = pad(i, 2) + ":30:00";
+                    var d1 = pad(i, 2) + ":00 - " + pad(i, 2) + ":30";
+                    var d2 = pad(i, 2) + ":30 - " + pad(i + 1, 2) + ":00";
+
+                    options += "<option value=\"" + t1 + "\">" + d1 + "</option>";
+                    options += "<option value=\"" + t2 + "\">" + d2 + "</option>";
+                }
+                document.write(options);
+            </script>
+        </select>
+    {% endif %}
+    <br/> 
+    {% if tutor.getTutorType == "private" %} 
+        Coupon code(if any): <input type="text" name="coupon_code" maxlength="12" /> <br/>
+        <button type="submit" onclick="return confirmBookSession()">Book</button>
+    {% else %}
+        <button type="submit">Book</button>
+    {% endif %}
+    <br/>
+    <b style="color:red;">{{error_msg}}</b>
+</form>
+
+
+{% endblock %}

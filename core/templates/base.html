@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title> {% block title %}Tutoria{% endblock %}
+    </title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+        <header>
+            <div id="bar">
+                Tutoria
+            </div>
+            <nav id="navigation">
+                <ul>
+                    <a href="{% url 'homepage' %}">
+                        <li>Home</li>
+                    </a>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'search_tutor' %}">
+                        <li>Search Tutor</li>
+                    </a>
+                    <a href="{% url 'view_timetable' %}">
+                        <li>Timetable</li>
+                    </a>
+                    <a href="{% url 'view_wallet' %}">
+                        <li>Wallet</li>
+                    </a>
+                    <a href="{% url 'view_notification' %}">
+                        {%if user.profile.hasNotification %}
+                        <li>Message({{user.profile.getNotificationNum}})</li>
+                        {% else %}
+                        <li>Message</li>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'logout' %}" id="logoutButton" class="pull-right">
+                        <li>Logout ({{ user.username }}) </li>
+                    </a>
+
+                    {% else %}
+                    <a href="{% url 'search_tutor' %}">
+                        <li>Search Tutor</li>
+                    </a>
+                    <a href="{% url 'signup' %}" id="signupButton" class="pull-right">
+                        <li>Sign Up</li>
+                    </a>
+                    <a href="{% url 'login' %}" id="loginButton" class="pull-right">
+                        <li>Login</li>
+                    </a>
+                    {% endif %}
+
+                </ul>
+            </nav>
+
+        </header>
+
+
+        <div id="main">
+
+
+            <article>
+                <section class="box">
+                    {% block content %} {% endblock %}
+        </div>
+    </div>
+
+</body>
+
+</html>
