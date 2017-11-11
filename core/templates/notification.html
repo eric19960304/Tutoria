@@ -5,12 +5,15 @@
 {% block content %}
     {% if list %}
     {% for each in list %}
-        <div id="msg_{{each.id}}"+>
+        <div id="msg_{{each.id}}">
             <p>
                 message id: {{each.id}} <br/>
                 date: {{each.date}}<br/>
                 message: <br/>
-                {{each.message}}
+                {% autoescape off %}
+                    {{each.message | linebreaks}}
+                {% endautoescape %}
+                
             </p>
         </div>
         <hr/>

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Tutor{% endblock %}
+
+{% block content %}
+        <script type="text/javascript">
+        function validateFrom(){
+            var a = $('#rating').val();
+            if(!a){
+                alert("Please select the rating!");
+                return false;
+            }else{
+                return true;
+            }
+        }
+        </script> 
+    
+        <h2>Search Result</h2>
+        {% if not url_not_found %}
+            {% if not submitted %}
+                <form action="{% url 'review_tutor' url_token %}" method="POST" id="review_form">
+                    {% csrf_token %}
+                    Rating: 
+                    <select name="rating" id="rating">
+                            <option disabled selected value> -Please select- </option>
+                            <option value="5">★★★★★</option>
+                            <option value="4">★★★★☆</option>
+                            <option value="3">★★★☆☆</option>
+                            <option value="2">★★☆☆☆</option>
+                            <option value="1">★☆☆☆☆</option>
+                            <option value="0">☆☆☆☆☆</option>
+                    </select><br/>
+                    Comment (optional): <br/>
+                    <textarea rows="3" cols="50" name="comment" form="review_form" maxlength="500" placeholder="Enter review here ..."></textarea><br/>
+                    <input type="checkbox" name="isAnonymous" id="isAnonymous" value="True">
+                    <label for="isAnonymous">submit as anonymous</label><br/><br/>
+                    <input type="submit" value="Submit" onclick="return validateFrom();" />
+                </form>
+                
+            {% else %}
+                <h2>Thanks for your review :)</h2>
+            {% endif %}
+        {% else %}
+            <h2>Invalid or expired page.</h2>
+        {% endif %}
+
+{% endblock %}

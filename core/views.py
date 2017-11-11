@@ -12,9 +12,38 @@ from django.db.models import Q
 from .handleTransaction import *
 from .factory import initDatabase, createUser
 from .utility import *
+from decimal import Decimal
 
-def homepage(request):
-    return render(request, 'homepage.html')
+
+
+@login_required
+def reviewTutor(request, url_token):
+    url_not_found = False
+    url = ReviewTempUrl.objects.filter(temp_url=url_token).filter(expires__gte=datetime.now())
+    if len(url) == 0:
+        context={'url_not_found': True}
+        return render(request, 'review_tutor.html', context)
+    url = url[0]
+    if not request.POST:
+        student = url.student
+        tutor = url.tutor
+        context = {'student': student, 'tutor': tutor, 'url_token': url_token}
+        return render(request, 'review_tutor.html', context)
+    else:
+        isAnonymous = False
+        if 'isAnonymous' in request.POST and request.POST['isAnonymous']=="True":
+            isAnonymous = True
+        
+        if 'comment' in request.POST and request.POST['comment']!="":
+            r = Review(tutor=url.tutor, student = url.student, rating=int(request.POST['rating']), date=getCurrentDatetime() , comment=request.POST['comment'], isAnonymous=isAnonymous)
+        else:
+            r = Review(tutor=url.tutor, student = url.student, rating=int(request.POST['rating']), date=getCurrentDatetime() ,  isAnonymous=isAnonymous)
+        
+        r.save()
+        url.delete()
+        context = {'submitted':True}
+        return render(request, 'review_tutor.html', context)
+
     
 
 @login_required
@@ -31,21 +60,27 @@ def cancelSession(request):
 
     IDs = request.POST.getlist('session_id')
     hasPrivateTutor = False
+    user_debit_amount = 0
+    msg = ""
 
     if len(IDs)==0:
-        return HttpResponse("You have not selected any tutorial session.")
-    user_debit_amount = 0
+        msg = "No session selected."
+        context = {'cancel_session_msg':msg}
+        return render(request, 'cancel_session.html', context)
+    
     for each in IDs:
         s = Session.objects.get(pk=each)
-        if s.tutor.getTutorType=="private":
+        if s.tutor.isPrivateTutor:
             hasPrivateTutor = True
-            user_debit_amount += bookingRefund(s.student,s.tutor,s)
-            
-        s.delete()
+            user_debit_amount += bookingRefund(s)
+        if s.status =="booked":
+            s.delete()
+            msg += "\nSession at {} from {} to {} canceled successfully.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
+        else:
+            msg += "\nSession at {} from {} to {} will begin within 24 hours and cannot be cancelled.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
+
     if hasPrivateTutor:
-        msg = 'Delete success. '+ '%.2f'%user_debit_amount + ' HKD has been refunded to your wallet.'
-    else:
-         msg = 'Delete success.'
+        msg = '%.2f'%user_debit_amount + ' HKD has been refunded to your wallet.'
 
     context = {'cancel_session_msg':msg}
     return render(request, 'cancel_session.html', context)
@@ -58,17 +93,117 @@ def viewTimetable(request):
 
     user_profile = request.user.profile
 
-    if(user_profile.user_type.user_type=="tutor"):
-        s = Session.objects.filter(isBlackedout=False).filter(tutor=user_profile.tutor)
-    elif(user_profile.user_type.user_type=="student"):
-        s = Session.objects.filter(isBlackedout=False).filter(student=user_profile.student)       
-    else:
-        # select user_profile = tutor or user_profile = student
-        s = Session.objects.filter(isBlackedout=False).filter( Q( tutor= user_profile.tutor) | Q(student=user_profile.student))
+    context={'profile':user_profile}
 
-    context={'session_list': s}
+    if(user_profile.isStudent):
+        s = Session.objects.filter(isBlackedout=False).filter(student=user_profile.student)
+        context['student_session_list'] = s
+    if(user_profile.isTutor):
+        s = Session.objects.filter(isBlackedout=False).filter(tutor=user_profile.tutor)
+        context['tutor_session_list'] = s
+
+    
     
     return render(request, 'timetable.html', context)
+
+
+
+@login_required
+def bookTutor(request, tutor_id):
+    if request.user.username =="admin":
+        return HttpResponse("You logged in as admin.")
+    
+    # get tutor with tutor_id
+    tutor = get_object_or_404(Tutor, pk=tutor_id)
+
+    # tutor with tutor_id not exist
+    if tutor not in Tutor.objects.exclude(tutor_type__isnull=True):
+        return HttpResponse("This Tutor not available.")
+    
+    # get tutor unavaliableTimeslot in next 7 date
+    current = getCurrentDatetime()
+    week_after = current + timedelta(days=7)
+    allTimeObj = Session.objects.filter(isBlackedout=True).filter(start_date__date__range=[current,week_after]).filter(tutor=tutor)
+    unavailable_time = [ getDatetimeStr(t.start_date)+" - "+getDatetimeStr(t.end_date) for t in allTimeObj]
+    
+    context = {'tutor': tutor, 'unavailable_time': unavailable_time}
+    if tutor.isPrivateTutor:
+        amount = tutor.hourly_rate*Decimal(1.05)
+        context['fee']= '%.2f'%amount
+
+
+    if not request.POST:
+        # form not submitted
+        return render(request, 'book_tutor.html', context)
+    
+    else:
+        # form submitted
+        use_coupon = False
+        coupon_valid = False
+        student = request.user.profile.student
+        credited_amount = 0
+        booking_date = request.POST['booking_date']
+        booking_time = request.POST['booking_time']
+        date_start = parse_datetime(booking_date+"T"+booking_time)
+        if tutor.isPrivateTutor:
+            date_end = date_start+timedelta(hours=1)
+        else:
+            date_end = date_start+timedelta(minutes=30)
+        
+        date_start = toLocalDatetime(date_start)
+        date_end = toLocalDatetime(date_end)
+        # check coupon
+        if 'coupon_code' in request.POST and request.POST['coupon_code']!='':
+            use_coupon = True
+            coupon_code = request.POST['coupon_code']
+            if Coupon.validate( str(coupon_code) ):
+                coupon_valid = True
+        
+        # handle coupon invalid error
+        if (use_coupon) and (not coupon_valid):
+            context['error_msg']="Coupon Code Invalid."
+            return render(request, 'book_tutor.html', context)
+        
+        # check user wallet amount
+        if tutor.isPrivateTutor:
+            if not hasSufficientBalance(student, tutor, (use_coupon and coupon_valid) ):
+                context['error_msg']="Insufficient wallet balance."
+                return render(request, 'book_tutor.html', context)
+        
+        booking_time_valid = validateBookingDatetime(date_start, date_end, tutor)
+        
+        # check booking valid or not
+        if not booking_time_valid :
+            context['error_msg']="The timeslot you slected is unavailable. Please select another."
+            return render(request, 'book_tutor.html', context)
+
+        fair_book = checkFairBook(date_start, date_end, tutor, student)
+
+        # check booking valid or not
+        if not fair_book :
+            context['error_msg']="Student only allowed booking ONE timeslot for the same tutor for any single day."
+            return render(request, 'book_tutor.html', context)
+
+
+        s = Session(student=student,tutor=tutor,booking_date=getCurrentDatetime(), start_date=date_start,end_date=date_end,status="booked", isCouponUsed=(use_coupon and coupon_valid))
+        s.save()
+        if tutor.isPrivateTutor:
+            # credit user wallet
+            credited_amount = bookingCredit(s)
+        sendEmailToTutor(s)
+        sendBookingNotification( s, credited_amount)
+
+        request.session['booking_msg'] = "You have booked a session with "+tutor.profile.getUserFullName+"\nDate: "+s.getBookedDateStr+"\nTimeslot: "+s.getStartTimeStr+" to "+s.getEndTimeStr
+        if tutor.isPrivateTutor:
+            request.session['booking_msg'] += '\n'+('%.2f'%credited_amount) +' has been deducted from your wallet.'
+            if use_coupon and coupon_valid:
+                request.session['booking_msg'] += "\nCoupon has been used, 5 percent is saved :)"
+
+        return HttpResponseRedirect(reverse('after_booked'))
+
+@login_required
+def afterBooked(request):
+    return render(request, 'after_booked.html', {'msg':request.session['booking_msg']})
 
 def searchTutor(request):
     
@@ -79,7 +214,9 @@ def searchTutor(request):
         tutor_list = Tutor.objects.exclude(tutor_type__isnull=True) \
                               .exclude(hourly_rate__isnull=True) \
                               .exclude(university__isnull=True) \
-                              .exclude(bio__isnull=True)
+                              .exclude(bio__isnull=True)\
+                              .exclude(profile__user__first_name__isnull=True)\
+                              .exclude(profile__user__last_name__isnull=True)
 
         if 'tutor_type' in request.GET:
             t = request.GET['tutor_type']
@@ -107,138 +244,20 @@ def searchTutor(request):
             max = request.GET['max']
             tutor_list = tutor_list.filter(hourly_rate__lte=max)
         if 'next7' in request.GET:
-            pass
+            for tutor in tutor_list:
+                if not checkNext7day(tutor):
+                    tutor_list = tutor_list.exclude(pk=tutor.pk)
 
         context = {'tag':Tag.objects.all(), 'course': Course.objects.all(),'tutor_list': tutor_list}
         return render(request, 'search_result.html', context)
 
 def viewTutorProfile(request, tutor_id):
     tutor = get_object_or_404(Tutor, pk=tutor_id)
-    context= {'tutor':tutor}
+    reviews = Review.objects.filter(tutor=tutor)
+    context= {'tutor':tutor, 'reviews': reviews}
+    if len(reviews)<3:
+        context['noAverage']=True
     return render(request, 'view_tutor_profile.html', context)
-
-@login_required
-def bookTutor(request, tutor_id):
-    if request.user.username =="admin":
-        return HttpResponse("You logged in as admin.")
-    
-    # get tutor with tutor_id
-    tutor = get_object_or_404(Tutor, pk=tutor_id)
-    typeOfTutor = tutor.getTutorType
-
-    # tutor with tutor_id not exist
-    if tutor not in Tutor.objects.exclude(tutor_type__isnull=True):
-        return HttpResponse("This Tutor not available.")
-    
-    # get tutor unavaliableTimeslot in next 7 date
-    current = getCurrentDatetime()
-    week_after = current + timedelta(days=7)
-    allTimeObj = Session.objects.filter(isBlackedout=True).filter(start_date__date__range=[current,week_after]).filter(tutor=tutor)
-    unavailable_time = [ getDatetimeStr(t.start_date)+" - "+getDatetimeStr(t.end_date) for t in allTimeObj]
-
-    # get timeslot that already booked
-    # ----------to be finished----------
-    
-    context = {'tutor': tutor, 'unavailable_time': unavailable_time}
-    if typeOfTutor=="private":
-        amount = tutor.hourly_rate*1.05
-        context['fee']= '%.2f'%amount
-
-
-    if not request.POST:
-        # form not submitted
-        return render(request, 'book_tutor.html', context)
-    
-    else:
-        # form submitted
-        isPrivateTutor = (typeOfTutor=="private")
-        use_coupon = False
-        coupon_valid = False
-        student = request.user.profile.student
-        credited_amount = 0
-        booking_date = request.POST['booking_date']
-        booking_time = request.POST['booking_time']
-        date_start = parse_datetime(booking_date+"T"+booking_time)
-        if isPrivateTutor:
-            date_end = date_start+timedelta(hours=1)
-        else:
-            date_end = date_start+timedelta(minutes=30)
-        
-        # check coupon
-        if 'coupon_code' in request.POST and request.POST['coupon_code']!='':
-            use_coupon = True
-            coupon_code = request.POST['coupon_code']
-            if Coupon.validate( str(coupon_code) ):
-                coupon_valid = True
-        
-        # handle coupon invalid error
-        if (use_coupon) and (not coupon_valid):
-            context['error_msg']="Coupon Code Invalid."
-            return render(request, 'book_tutor.html', context)
-        
-        # credit user's wallet
-        if isPrivateTutor:
-            credited_amount = bookingCredit(student, tutor, use_coupon and coupon_valid)
-            if credited_amount < 0:
-                context['error_msg']="Insufficient wallet balance."
-                return render(request, 'book_tutor.html', context)
-        
-        booking_time_valid = validateBookingDatetime(date_start, date_end, tutor)
-        
-        if not booking_time_valid :
-            context['error_msg']="The timeslot you slected is unavailable. Please select another."
-            return render(request, 'book_tutor.html', context)
-
-        fair_book = checkFairBook(date_start, date_end, tutor, student)
-
-        if not fair_book :
-            context['error_msg']="Student only allowed booking ONE timeslot for the same tutor for any single day."
-            return render(request, 'book_tutor.html', context)
-
-        # if for safety
-        if booking_time_valid and fair_book:
-            s = Session(student=student,tutor=tutor,booking_date=getCurrentDatetime(), start_date=toLocalDatetime(date_start),end_date=toLocalDatetime(date_end),status="booked")
-            s.save()
-
-        if isPrivateTutor and coupon_valid and use_coupon:
-            # since coupon need session object
-            Coupon.markCouponUsed(request.POST['coupon_code'], s)
-
-        request.session['booking_msg1'] = "You have booked a session with "+tutor.profile.getUserFullName
-        request.session['booking_msg2'] = "Date: "+s.getBookedDateStr+"  /  Timeslot: "+s.getStartTimeStr+" to "+s.getEndTimeStr
-        request.session['booking_isPrivateTutor'] = isPrivateTutor
-
-        if isPrivateTutor:
-            request.session['booking_msg3'] = ('%.2f'%credited_amount) +' has been deducted from your wallet.'
-            if use_coupon and coupon_valid:
-                request.session['useCoupon']=True
-            else:
-                request.session['useCoupon']=False
-
-
-        sendEmailToTutor(s)
-        sendNotification( s, isPrivateTutor, credited_amount)
-
-        return HttpResponseRedirect(reverse('after_booked'))
-
-@login_required
-def afterBooked(request):
-    isPrivateTutor = False
-    
-    msg1=request.session['booking_msg1']
-    msg2=request.session['booking_msg2']
-    msg3=request.session['booking_msg3']
-    isPrivateTutor = request.session['booking_isPrivateTutor']
-    context={'msg1':msg1,'msg2':msg2}
-
-    
-    
-    if isPrivateTutor:
-        context['msg3'] = msg3
-        if request.session['useCoupon']==True:
-            context['coupon_msg']="Coupon has been used, 5 percent is saved :)"
-    
-    return render(request, 'after_booked.html', context)
 
 def signup(request):
     if request.method == 'POST':
@@ -248,7 +267,6 @@ def signup(request):
             user.save()
             user_type = form.cleaned_data['user_type']
             phone_no = form.cleaned_data.get('phone_no')
-            
 
             createUser(user, user_type, phone_no)
 
@@ -267,3 +285,5 @@ def notification(request):
     return render(request, 'notification.html', context)
 
 
+def homepage(request):
+    return render(request, 'homepage.html')

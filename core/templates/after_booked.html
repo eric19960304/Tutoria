@@ -3,8 +3,5 @@
 {% block title %}Book Tutor{% endblock %}
 
 {% block content %}
-            <h2>{{msg1}}</h2>
-            {{msg2}}<br/>
-            {{msg3}}<br/>
-            {{coupon_msg}}
+            {{msg | linebreaks}}
 {% endblock %}

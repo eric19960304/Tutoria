@@ -3,18 +3,41 @@
 {% block title %}Search Tutor{% endblock %}
 
 {% block content %}
+        <script>
+            function sortByHourlyRate(){
 
+            }
+            function sortByAverageRating(){
+                
+            }
+        </script>
     
         <h2>Search Result</h2>
+        <hr/>
+        Sort by hourly rate:
+        <select name="sort_by_hourly_rate" onchange="sortByHourlyRate()">
+            <option disabled selected value> -Please select- </option>
+            <option value="Descending">Descending</option>
+            <option value="Ascending">Ascending</option>
+        </select>
+        <br/>
+        Sort by average rating:
+        <select name="sort_by_average_rating" onchange="sortByAverageRating()">
+            <option disabled selected value> -Please select- </option>
+            <option value="Descending">Descending</option>
+            <option value="Ascending">Ascending</option>
+        </select>
         {% if tutor_list %}
             {% for tutor in tutor_list %}
                 <hr/>
                 {{tutor.profile.getUserFullName}} <br/>
                 {{tutor.university.name}}<br/>
-                {% if tutor.getTutorType == "private" %}
+                {% if tutor.isPrivateTutor %}
                     Hourly rate: {{tutor.hourly_rate}}<br/>
                 {% endif %}
-
+                {% if review_score %}
+                    Average review: {{review_score}}<br/>
+                {% endif %}
                 <a href="{% url 'view_tutor_profile' tutor.id %}">View detailed profile</a> / 
                 <a href="{% url 'book_tutor' tutor.id %}">Book this tutor</a>
                 

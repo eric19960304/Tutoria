@@ -9,13 +9,32 @@
             <hr/>
             {{tutor.profile.getUserFullName}} <br/>
             {{tutor.university.name}}<br/>
-            {% if tutor.getTutorType == "private" %}
+            {% if tutor.isPrivateTutor %}
                 <b>Private tutor</b><br/>
                 Hourly rate: {{tutor.hourly_rate}}<br/>
             {% else %}
                 <b>Contracted tutor</b><br/>
             {% endif %}
-
+            bio: {{tutor.bio}}<br/>
+            <br/>
+            Recent review: <br/><br/>
+            {% if reviews %}
+                {% for each in reviews %}
+                    <p>
+                    {% if not each.isAnonymous %}
+                        Student name: {{each.student.profile.getUserFullName}}</br>
+                    {% else %}
+                        Anonymous student</br>
+                    {% endif %}
+                    {% if not noAverage %}
+                        Rating: {{ each.rating }} Star<br/>
+                    {% endif %}
+                    Comment:
+                    <p>{{each.comment}}</p>
+                    </p>
+                {% endfor %}
+            {% endif %}
+            <br/><br/>
             <a href="{% url 'book_tutor' tutor.id %}">Book this tutor</a>
                 
         {% else %}

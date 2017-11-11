@@ -6,6 +6,7 @@ from tutoriabeta import settings
 from datetime import datetime, timedelta
 from pytz import timezone
 from django.utils import timezone as django_timezone
+from decimal import Decimal
 
 # https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
 
@@ -36,7 +37,7 @@ class Wallet(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.0, blank=True, null=True)
     def __str__(self):
         if len(Wallet.objects.exclude(profile=None).filter(pk=self.id))>0:  # not system wallet
-            return str(self.id)+': ' +self.profile.user.username
+            return "Wallet "+str(self.id)+': ' +self.profile.user.username
         else:
             return str(self.id)+": System wallet"
     def credit(self, credit_amount): #decrease amount
@@ -53,10 +54,19 @@ class Profile(models.Model):
     user_type =  models.ForeignKey(UserType)
     wallet = models.OneToOneField(Wallet)
     def __str__(self):
-        return str(self.id)+": "+self.user.username+"'s profile"
+        return "Profile "+str(self.id)+": "+self.user.username+"'s profile"
     @property
     def getUserType(self):
         return self.user_type.user_type
+    @property
+    def isStudent(self):
+        return self.user_type.user_type=="student" or self.user_type.user_type=="both"
+    @property
+    def isTutor(self):
+        return self.user_type.user_type=="tutor" or self.user_type.user_type=="both"
+    @property
+    def isBoth(self):
+        return self.user_type.user_type=="both"
     @property
     def getUserFullName(self):
         user=self.user
@@ -76,45 +86,37 @@ class Profile(models.Model):
     @property
     def getNotificationNum(self):
         return len(Notification.objects.filter(profile=self))
+    @property
+    def getUsername(self):
+        return self.user.username
 
-
-class Transaction(models.Model):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE,related_name="profile_transaction" )
-    involved_profile = models.ForeignKey(Profile, on_delete=models.CASCADE,related_name="involved_profile_transaction", null=True, blank=True)
-    date = models.DateTimeField()
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    isDebit = models.BooleanField()
-    to_or_from_system = models.BooleanField(default=False)
-    to_or_from_bank = models.BooleanField(default=False)
-    description = models.CharField(max_length=50, blank=False,null=True)
-    def __str__(self):
-        return str(self.id)+": "+self.profile.user.username+"'s transaction"
 
 class Course(models.Model):
     name = models.CharField(max_length=50)
     code = models.CharField(max_length=10)
     university = models.ForeignKey(University)
     def __str__(self):
-        return str(self.id)+": "+self.name
+        return "Course "+str(self.id)+": "+self.name
 
 
 class Student(models.Model):
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
     university = models.OneToOneField(University, blank=True,null=True)
     def __str__(self):
-        return str(self.id)+": "+self.profile.user.username
+        return "Student "+str(self.id)+": "+self.profile.user.username
 
 class Tutor(models.Model):
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
     tutor_type =  models.ForeignKey(TutorType, blank=True, null=True )
-    hourly_rate = models.IntegerField(blank=True,null=True) 
+    hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal(0.0))
     tag = models.ManyToManyField(Tag, blank=True)
     university = models.ForeignKey(University, blank=True,null=True)
     course = models.ManyToManyField(Course, blank=True)
     bio = models.CharField(max_length=500, blank=True,null=True)
     def __str__(self):
-        return str(self.id)+": "+self.profile.user.username
-    def checkProfileComplete(self):
+        return "Tutor "+str(self.id)+": "+self.profile.user.username
+    @property
+    def profileCompleteness(self):
         percent = { 'tutor_type': 25, 'hourly_rate': 25, 'university': 15, 'bio': 15, 'courses': 10, 'tags': 10}
         total = 0
         if self.tutor_type:
@@ -133,6 +135,9 @@ class Tutor(models.Model):
     @property
     def getTutorType(self):
         return self.tutor_type.tutor_type
+    @property
+    def isPrivateTutor(self):
+        return self.tutor_type.tutor_type=="private"
 
 
 class Session(models.Model):
@@ -142,13 +147,14 @@ class Session(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     status = models.CharField(max_length=10,blank=True,null=True)
+    isCouponUsed = models.BooleanField(default=False)
     isBlackedout = models.BooleanField(default=False)
     def __str__(self):
         local_timezone = timezone(settings.TIME_ZONE)
         s_d = self.start_date.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')
         n_d = self.end_date.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')
         try:
-            return str(self.id)+": "+self.student.profile.user.username+" <-> "+self.tutor.profile.user.username +\
+            return "Session "+str(self.id)+": "+self.student.profile.user.username+" <-> "+self.tutor.profile.user.username +\
                     ", " + s_d + " - " + n_d
         except AttributeError:
             return str(self.id)+": "+self.tutor.profile.user.username+'\'s '+"Blackedout ("+s_d+" - "+n_d+")"
@@ -169,6 +175,18 @@ class Session(models.Model):
         local_timezone = timezone(settings.TIME_ZONE)
         return self.booking_date.astimezone(local_timezone).strftime('%e %b %Y, %H:%M')
 
+class Transaction(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE,related_name="profile_transaction" )
+    involved_profile = models.ForeignKey(Profile, on_delete=models.CASCADE,related_name="involved_profile_transaction", null=True, blank=True)
+    date = models.DateTimeField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    session = models.ForeignKey(Session, blank=True, null=True)
+    isDebit = models.BooleanField()
+    to_or_from_system = models.BooleanField(default=False)
+    to_or_from_bank = models.BooleanField(default=False)
+    description = models.CharField(max_length=50, blank=False,null=True)
+    def __str__(self):
+        return "Transaction "+str(self.id)+": "+self.profile.user.username+"'s transaction"
 
 class System(models.Model):  #single record table storing system info
     wallet = models.OneToOneField(Wallet, on_delete=models.CASCADE)
@@ -181,27 +199,52 @@ class Notification(models.Model):
     date = models.DateTimeField()
     checked_date = models.DateTimeField(null=True, blank=True)
     def __str__(self):
-        return str(self.id)+": "+self.profile.user.username   
+        return "Notification "+str(self.id)+": "+self.profile.user.username   
 
 class Coupon(models.Model):
-    code = models.CharField(max_length=12)
+    code = models.CharField(max_length=12, unique=True)
     expire_date = models.DateTimeField()
-    used_date = models.DateTimeField(null=True, blank=True)
-    used_session = models.OneToOneField(Session, null=True, blank=True)
+    #used_date = models.DateTimeField(null=True, blank=True)
+    #used_session = models.OneToOneField(Session, null=True, blank=True)
     def __str__(self):
         return "Coupon "+str(self.id)
     
     @staticmethod
     def validate( coupon_code):
-        c = Coupon.objects.filter(code=coupon_code)
+        local_timezone = timezone(settings.TIME_ZONE)
+        c = Coupon.objects.filter(code=coupon_code).filter(expire_date__gte=datetime.now().astimezone(local_timezone))
         return len(c)!=0
-
+    '''
     @staticmethod
     def markCouponUsed( coupon_code, session):
         c = Coupon.objects.filter(code=coupon_code)
         if len(c)!=0:
             c[0].used_session = session
             c[0].save()
+    '''
 
-
+class Review(models.Model):
+    tutor = models.ForeignKey(Tutor, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student)
+    rating = models.IntegerField()
+    date = models.DateTimeField()
+    comment = models.CharField(max_length=500, blank=True,null=True)
+    isAnonymous = models.BooleanField()
+    def __str__(self):
+        return "Review "+str(self.id)+": "+self.tutor.profile.user.username+"<->"+self.student.profile.user.username
     
+    @staticmethod
+    def getAverageScore(self,tutor):
+        sum = 0
+        r_list = Review.objects.filter(tutor=tutor)
+        for each in r_list:
+            sum += each.score
+        return sum / len(r_list)
+
+class ReviewTempUrl(models.Model):
+    temp_url = models.CharField(blank=False, max_length=32, unique=True)
+    tutor = models.ForeignKey(Tutor)
+    student = models.ForeignKey(Student)
+    expires = models.DateTimeField()
+    def __str__(self):
+        return "Review url "+str(self.id)+": "+self.tutor.profile.user.username+"<->"+self.student.profile.user.username

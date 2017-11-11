@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^wallet/$', views.viewWallet, name='view_wallet'),
     url(r'^message/$', views.notification, name='view_notification'),
     url(r'^tutorprofile/(?P<tutor_id>[0-9]+)$', views.viewTutorProfile, name='view_tutor_profile'),
+    url(r'^reviewtutor/(?P<url_token>\w+)/$', views.reviewTutor, name="review_tutor"),
 
     url(r'^password_reset/$', auth_views.password_reset, name='password_reset'),
     url(r'^password_reset/done/$', auth_views.password_reset_done, name='password_reset_done'),

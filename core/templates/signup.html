@@ -11,10 +11,14 @@
         {{ field.label_tag }}<br/>
         {{ field }}
         {% if field.help_text %}
-          {% autoescape off %}{{ field.help_text }}{% endautoescape %}
+          {% autoescape off %}
+            {{ field.help_text }}
+          {% endautoescape %}
         {% endif %}
         {% for error in field.errors %}
-          {% autoescape off %}{{ error }}{% endautoescape %}
+          {% autoescape off %}
+            {{ error }}
+          {% endautoescape %}
         {% endfor %}
 
       </p>

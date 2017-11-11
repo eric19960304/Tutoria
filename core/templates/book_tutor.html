@@ -2,14 +2,30 @@
 {% block title %}Book Tutor{% endblock %} 
 
 {% block content %}
-
-{% if tutor.getTutorType == "private" %} 
-    <script type="text/javascript">
+<script type="text/javascript">
+    
+        {% if tutor.isPrivateTutor %} 
         function confirmBookSession() {
             return confirm("HKD {{fee}} will be deducted from your wallet, continue?");
         }
-    </script> 
-{% endif %}
+        {% endif %}
+
+        function pad(n, width, z) {
+            z = z || '0';
+            n = n + '';
+            return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+        }
+        function validateFrom(){
+            var selectedTime = $('#booking_time').val();
+            var selectedDate = $('#booking_date').val();
+            if(!selectedTime || selectedDate==''){
+                alert("Please select the date and time!");
+                return false;
+            }else{
+                return true;
+            }
+        }
+</script>
 
 <h2>{{tutor.profile.getUserFullName}}</h2>
 Tutor type: {{tutor.getTutorType}} <br/>
@@ -27,17 +43,12 @@ Tutor type: {{tutor.getTutorType}} <br/>
     select timeslot: 
     {% if tutor.getTutorType == "private" %}
         <select id="booking_time" name="booking_time">
-            <option disabled selected value="notSelected"> -- </option>
+            <option disabled selected value="notSelected"> -Please select- </option>
             <script type="text/javascript"> 
-                function pad(n, width, z) {
-                    z = z || '0';
-                    n = n + '';
-                    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-                }
                 // 8:30 - 18:30
-                var i = 8;
+                var i;
                 var options = "";
-                for (i = 8; i <= 17; i++) {
+                for (i = 9; i <= 17; i++) {
                     var t1 = pad(i, 2) + ":00:00";
                     var d1 = pad(i, 2) + ":00 - " + pad(i + 1, 2) + ":00";
 
@@ -48,17 +59,12 @@ Tutor type: {{tutor.getTutorType}} <br/>
         </select>
     {% else %}
         <select id="booking_time" name="booking_time">
-            <option disabled selected value="notSelected"> -- </option>
+            <option disabled selected value="notSelected"> -Please select- </option>
             <script type="text/javascript"> 
-                function pad(n, width, z) {
-                    z = z || '0';
-                    n = n + '';
-                    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-                }
                 // 8:30 - 18:30
-                var i = 8;
-                var options = "";
-                for (i = 8; i <= 17; i++) {
+                var i;
+                var options = "<option value=\"08:30:00\">08:30 - 09:00</option>";
+                for (i = 9; i <= 17; i++) {
                     var t1 = pad(i, 2) + ":00:00";
                     var t2 = pad(i, 2) + ":30:00";
                     var d1 = pad(i, 2) + ":00 - " + pad(i, 2) + ":30";
@@ -67,33 +73,20 @@ Tutor type: {{tutor.getTutorType}} <br/>
                     options += "<option value=\"" + t1 + "\">" + d1 + "</option>";
                     options += "<option value=\"" + t2 + "\">" + d2 + "</option>";
                 }
+                options+= "<option value=\"18:00:00\">18:00 - 18:30</option>";
                 document.write(options);
             </script>
         </select>
     {% endif %}
     <br/> 
-    {% if tutor.getTutorType == "private" %} 
+    {% if tutor.isPrivateTutor %} 
         Coupon code(if any): <input type="text" name="coupon_code" maxlength="12" /> <br/>
         <button type="submit" onclick="return validateFrom(); return confirmBookSession();">Book</button>
     {% else %}
-        <button type="submit">Book</button>
+        <button type="submit" onclick="return validateFrom();">Book</button>
     {% endif %}
     <br/><br/>
-    {% if error_msg %} 
-        <b style="color:red;">Error: {{error_msg}}</b>
-    {% endif %}
+    <div id="error_msg"><b style="color:red;">{{error_msg}}</b></div>
 </form>
-<script type="text/javascript">
-    function validateFrom(){
-        var selectedTime = $('#booking_time').val();
-        var selectedDate = $('#booking_date').val();
-        if(!selectedTime || selectedDate==''){
-            alert("Please select the date and time!");
-            return false;
-        }else{
-            return true;
-        }
-    }
-</script>
 
 {% endblock %}

@@ -1,5 +1,6 @@
-admin username: admin
-admin password: jamsandwich
+#check version
+python --version
+django-admin --version
 
 #solve github fetch / push conflict:
 git add -A
@@ -20,7 +21,6 @@ User.objects.all().exclude(is_staff=True).filter(student__isnull=True)
 # select all records from User where it is not a staff/admin
 User.objects.all().exclude(is_staff=True)
 
-
 {% if user.is_authenticated %}
 {% else %}
 {% endif %}
@@ -35,3 +35,10 @@ from tutoriabeta import settings
 from pytz import timezone
 local_timezone = timezone(settings.TIME_ZONE)
 date_var.astimezone(local_timezone)
+
+operator precedence of boolean operator in template, from lowest to highest:
+or
+and
+not
+in
+==, !=, <, >, <=, >=
