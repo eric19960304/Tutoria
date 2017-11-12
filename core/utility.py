@@ -81,30 +81,31 @@ def sendBookingNotification(s, credited_amount):
     amount = '%.2f'%credited_amount
     #for student
     student_msg =   'Dear '+s.student.profile.user.username+\
-                    ',\nYou have successfully booked a session with tutor '+s.tutor.profile.user.username+\
+                    ',\nYou have successfully booked a session with tutor '+s.tutor.profile.getUserFullName+\
                     ' at '+s.getBookingDateStr+'.\n'+\
-                    'The session will start at ' +s.getBookedDateStr+ ' from ' +s.getStartTimeStr+ ' to ' + s.getEndTimeStr+'.\n\n'\
+                    'The session will start at ' +s.getBookedDateStr+ ' from ' +s.getStartTimeStr+ ' to ' + s.getEndTimeStr+'.\n'+\
+                    'The contact number of tutor '+s.tutor.profile.getUserFullName+' is '+s.tutor.profile.phone+'.\n\n'+\
                     'Please remind that, you will not able to cancel the booked session at the time that the session is about to start within 24 hour.\n'
     if isPrivateTutor:
         student_msg += '\nSince you have booked a private tutor, '+\
                         'HKD '+amount+' has been deducted from your wallet. '+\
                         'This amount will be refunded if you cancel the session at less 24 hour before the starting time of the session.\n'
 
-    s_n = Notification(profile = s.student.profile, message = student_msg, date=now)
+    s_n = Notification(profile = s.student.profile,title="Booking Notification", message = student_msg, date=now)
     s_n.save()
 
     #for tutor
     tutor_msg = 'Dear '+s.tutor.profile.user.username+",\n"+\
                 'Student with username '+s.student.profile.user.username+ \
                 ' has booked a session with you at '+s.getBookingDateStr+ ".\n" + \
-                'The session will start at ' +s.getBookedDateStr+ ' from ' +s.getStartTimeStr+ ' to ' + s.getEndTimeStr+'.\n'\
+                'The session will start at ' +s.getBookedDateStr+ ' from ' +s.getStartTimeStr+ ' to ' + s.getEndTimeStr+'.\n'+\
                 'The contact number of the student is '+s.student.profile.phone+"."
     
     if isPrivateTutor:
         student_msg += 'HKD '+amount+' will be transer to your wallet, '+\
                         'if the session has not been cancelled at less 24 hour before the starting time of the session.\n'
 
-    t_n = Notification(profile = s.tutor.profile, message = tutor_msg, date=now)
+    t_n = Notification(profile = s.tutor.profile, title="Appointment Notification" , message = tutor_msg, date=now)
     t_n.save()
 
 def sendTutorPaymentNotification(s):
@@ -112,10 +113,10 @@ def sendTutorPaymentNotification(s):
 
     #for tutor
     tutor_msg = 'Dear '+s.tutor.profile.user.username+",\n"+\
-                'Since your tutorial session with the student '+s.student.profile.user.username+' has began.\n' +\
+                'Since your tutorial session with the student '+s.student.profile.user.username+' has been completed.\n' +\
                 'The tutor fee HKD '+'%.2f'%s.tutor.hourly_rate+" has been transfered to your wallet."
 
-    t_n = Notification(profile = s.tutor.profile, message = tutor_msg, date=now)
+    t_n = Notification(profile = s.tutor.profile, title="Payment Notification" ,message = tutor_msg, date=now)
     t_n.save()
 
 def validateBookingDatetime(date_start, date_end, tutor):
@@ -168,5 +169,5 @@ def reviewInvitation(s):
     web_domain = "http://127.0.0.1:8000"
     msg = "Dear {0}, you have finished a session with tutor {1}.\n Thanks for using Tutoria, we sincerely invite you to leave a review for tutor {1}, please click the link below to enter the review page. Note that the link will expire 3 days after.\n\n<a href=\"{2}{3}\">click me to visit review page</a>".format(s.student.profile.getUsername, s.tutor.profile.getUserFullName, web_domain ,reverse('review_tutor', args=(url_str,)))
 
-    s_n = Notification(profile = s.student.profile, message = msg, date=getCurrentDatetime())
+    s_n = Notification(profile = s.student.profile, title="Review Invitation" ,message = msg, date=getCurrentDatetime())
     s_n.save()

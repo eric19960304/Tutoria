@@ -1,2 +1,9 @@
-[12/Nov/2017 05:00:00] Session management begin...
-[12/Nov/2017 05:00:00] Session management finished.
+[12/Nov/2017 15:30:00] <Session management begin...>
+[12/Nov/2017 15:30:00]   Locked session: Session 97: eric <-> david, 2017-11-12 14:00 - 2017-11-12 15:00
+[12/Nov/2017 15:30:00]   Ended session: Session 97: eric <-> david, 2017-11-12 14:00 - 2017-11-12 15:00
+[12/Nov/2017 15:30:00]   Sent review invitation to Student 1: eric
+[12/Nov/2017 15:30:00]   Transfered fee to tutor david
+[12/Nov/2017 15:30:00]   Sent payment notification to tutor david
+[12/Nov/2017 15:30:00] <Session management finished>
+[12/Nov/2017 15:30:00] <Session management begin...>
+[12/Nov/2017 15:30:00] <Session management finished>

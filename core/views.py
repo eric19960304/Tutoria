@@ -96,10 +96,10 @@ def viewTimetable(request):
     context={'profile':user_profile}
 
     if(user_profile.isStudent):
-        s = Session.objects.filter(isBlackedout=False).filter(student=user_profile.student)
+        s = Session.objects.filter(isBlackedout=False).filter(student=user_profile.student).order_by('-booking_date')
         context['student_session_list'] = s
     if(user_profile.isTutor):
-        s = Session.objects.filter(isBlackedout=False).filter(tutor=user_profile.tutor)
+        s = Session.objects.filter(isBlackedout=False).filter(tutor=user_profile.tutor).order_by('-booking_date')
         context['tutor_session_list'] = s
 
     
@@ -123,7 +123,7 @@ def bookTutor(request, tutor_id):
     # get tutor unavaliableTimeslot in next 7 date
     current = getCurrentDatetime()
     week_after = current + timedelta(days=7)
-    allTimeObj = Session.objects.filter(isBlackedout=True).filter(start_date__date__range=[current,week_after]).filter(tutor=tutor)
+    allTimeObj = Session.objects.filter(tutor=tutor).filter(start_date__date__range=[current,week_after])
     unavailable_time = [ getDatetimeStr(t.start_date)+" - "+getDatetimeStr(t.end_date) for t in allTimeObj]
     
     context = {'tutor': tutor, 'unavailable_time': unavailable_time}

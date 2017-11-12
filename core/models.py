@@ -82,10 +82,10 @@ class Profile(models.Model):
         return fname
     @property
     def hasNotification(self):
-        return len(Notification.objects.filter(profile=self))>0
+        return len(Notification.objects.filter(profile=self,checked=False))>0
     @property
     def getNotificationNum(self):
-        return len(Notification.objects.filter(profile=self))
+        return len(Notification.objects.filter(profile=self,checked=False))
     @property
     def getUsername(self):
         return self.user.username
@@ -195,9 +195,10 @@ class System(models.Model):  #single record table storing system info
 
 class Notification(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100)
     message = models.CharField(max_length=1000)
     date = models.DateTimeField()
-    checked_date = models.DateTimeField(null=True, blank=True)
+    checked = models.BooleanField(default=False)
     def __str__(self):
         return "Notification "+str(self.id)+": "+self.profile.user.username   
 

@@ -17,9 +17,10 @@
             {% endif %}
             bio: {{tutor.bio}}<br/>
             <br/>
-            Recent review: <br/><br/>
+            Recent review: <br/>
             {% if reviews %}
                 {% for each in reviews %}
+                    <hr/>
                     <p>
                     {% if not each.isAnonymous %}
                         Student name: {{each.student.profile.getUserFullName}}</br>
