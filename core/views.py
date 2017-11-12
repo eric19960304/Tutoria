@@ -55,12 +55,6 @@ def viewWallet(request):
     context={'amount':wallet.amount}
     return render(request, 'view_wallet.html', context)
 
-@login_required
-def cancelSession(request):
-
-    
-    return render(request, 'cancel_session.html', context)
-
 
 @login_required
 def viewTimetable(request):
@@ -94,9 +88,11 @@ def viewTimetable(request):
                 hasPrivateTutor = True
                 user_debit_amount += bookingRefund(s)
             if s.status =="booked":
-                s.delete()
+                # send email to tutor
+                sendCancelEmailToTutor(s)
                 msg += "\nSession at {} from {} to {} canceled successfully.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
                 hasCancelled = True
+                s.delete()
             else:
                 msg += "\nSession at {} from {} to {} will begin within 24 hours and cannot be cancelled.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
 
@@ -191,7 +187,7 @@ def bookTutor(request, tutor_id):
         if tutor.isPrivateTutor:
             # credit user wallet
             credited_amount = bookingCredit(s)
-        sendEmailToTutor(s)
+        sendBookingEmailToTutor(s)
         sendBookingNotification( s, credited_amount)
 
         request.session['booking_msg'] = "You have booked a session with "+tutor.profile.getUserFullName+"\nDate: "+s.getBookedDateStr+"\nTimeslot: "+s.getStartTimeStr+" to "+s.getEndTimeStr

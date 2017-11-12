@@ -58,7 +58,7 @@ def getNearestHalfHour(date):
 
 
 # other function that do not want to put in views
-def sendEmailToTutor(s):
+def sendBookingEmailToTutor(s):
     msg_body = 'Dear '+s.tutor.profile.user.username+",\n"+\
                'Student with username <'+s.student.profile.user.username+ '>'+\
                ' has booked a session with you at '+s.getBookingDateStr+ ".\n" + \
@@ -66,7 +66,21 @@ def sendEmailToTutor(s):
                'The contact number of the student is '+s.student.profile.phone+"."
 
     send_mail(
-        'You have a new session booked',
+        'New Appointment Notification',
+        msg_body,
+        'noreplay@tutoria.com',
+        [s.tutor.profile.user.email],
+        fail_silently=False,
+        )
+
+def sendCancelEmailToTutor(s):
+    msg_body = 'Dear '+s.tutor.profile.user.username+",\n"+\
+               'Student with username <'+s.student.profile.user.username+ '>'+\
+               ' has cancelled a session with you which was planned to start at '+\
+               s.getBookingDateStr+ ', from ' +s.getStartTimeStr+ ' to ' + s.getEndTimeStr+'.\n'
+
+    send_mail(
+        'Session Cancellation Notification',
         msg_body,
         'noreplay@tutoria.com',
         [s.tutor.profile.user.email],
