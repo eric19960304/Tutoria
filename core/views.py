@@ -58,31 +58,7 @@ def viewWallet(request):
 @login_required
 def cancelSession(request):
 
-    IDs = request.POST.getlist('session_id')
-    hasPrivateTutor = False
-    user_debit_amount = 0
-    msg = ""
-
-    if len(IDs)==0:
-        msg = "No session selected."
-        context = {'cancel_session_msg':msg}
-        return render(request, 'cancel_session.html', context)
     
-    for each in IDs:
-        s = Session.objects.get(pk=each)
-        if s.tutor.isPrivateTutor:
-            hasPrivateTutor = True
-            user_debit_amount += bookingRefund(s)
-        if s.status =="booked":
-            s.delete()
-            msg += "\nSession at {} from {} to {} canceled successfully.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
-        else:
-            msg += "\nSession at {} from {} to {} will begin within 24 hours and cannot be cancelled.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
-
-    if hasPrivateTutor:
-        msg = '%.2f'%user_debit_amount + ' HKD has been refunded to your wallet.'
-
-    context = {'cancel_session_msg':msg}
     return render(request, 'cancel_session.html', context)
 
 
@@ -96,13 +72,38 @@ def viewTimetable(request):
     context={'profile':user_profile}
 
     if(user_profile.isStudent):
-        s = Session.objects.filter(isBlackedout=False).filter(student=user_profile.student).order_by('-booking_date')
+        s = Session.objects.filter(isBlackedout=False).exclude(status="ended").filter(student=user_profile.student).order_by('-booking_date')
         context['student_session_list'] = s
     if(user_profile.isTutor):
-        s = Session.objects.filter(isBlackedout=False).filter(tutor=user_profile.tutor).order_by('-booking_date')
+        s = Session.objects.filter(isBlackedout=False).exclude(status="ended").filter(tutor=user_profile.tutor).order_by('-booking_date')
         context['tutor_session_list'] = s
 
-    
+    if request.POST:
+        IDs = request.POST.getlist('session_id')
+        hasPrivateTutor = False
+        hasCancelled = False
+        user_debit_amount = 0
+        msg = ""
+
+        if len(IDs)==0:
+            return render(request, 'timetable.html', context)
+        
+        for each in IDs:
+            s = Session.objects.get(pk=each)
+            if s.tutor.isPrivateTutor:
+                hasPrivateTutor = True
+                user_debit_amount += bookingRefund(s)
+            if s.status =="booked":
+                s.delete()
+                msg += "\nSession at {} from {} to {} canceled successfully.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
+                hasCancelled = True
+            else:
+                msg += "\nSession at {} from {} to {} will begin within 24 hours and cannot be cancelled.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
+
+        if hasPrivateTutor and hasCancelled:
+                    msg += '%.2f'%user_debit_amount + ' HKD has been refunded to your wallet.'
+        
+        context['cancel_session_msg']=msg
     
     return render(request, 'timetable.html', context)
 

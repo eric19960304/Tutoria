@@ -13,7 +13,6 @@ urlpatterns = [
     url(r'^booktutor/(?P<tutor_id>[0-9]+)$', views.bookTutor, name='book_tutor'),
     url(r'^booksuccess/$', views.afterBooked, name='after_booked'),
     url(r'^timetable/$', views.viewTimetable, name='view_timetable'),
-    url(r'^cancel/$', views.cancelSession, name='cancel_session'),
     url(r'^wallet/$', views.viewWallet, name='view_wallet'),
     url(r'^message/$', views.notification, name='view_notification'),
     url(r'^tutorprofile/(?P<tutor_id>[0-9]+)$', views.viewTutorProfile, name='view_tutor_profile'),
