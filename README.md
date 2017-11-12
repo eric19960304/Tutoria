@@ -16,7 +16,7 @@ run session manage command:
 python manage.py managesession >> manage_session_log.txt
 
 [optional]
-To using python scheduler to periodically run session manage command, first install schedule module:
+To use python scheduler to periodically run session manage command, first install schedule module:
 pip install schedule
 
 Then run:
