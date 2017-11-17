@@ -138,6 +138,13 @@ class Tutor(models.Model):
     @property
     def isPrivateTutor(self):
         return self.tutor_type.tutor_type=="private"
+    @property
+    def getAverageRating(self):
+        if len( Review.objects.filter(tutor=self) )>0:
+            return Review.getAverageScore(self)
+        else:
+            return 999
+
 
 
 class Session(models.Model):
@@ -235,12 +242,12 @@ class Review(models.Model):
         return "Review "+str(self.id)+": "+self.tutor.profile.user.username+"<->"+self.student.profile.user.username
     
     @staticmethod
-    def getAverageScore(self,tutor):
+    def getAverageScore(tutor):
         sum = 0
         r_list = Review.objects.filter(tutor=tutor)
         for each in r_list:
-            sum += each.score
-        return sum / len(r_list)
+            sum += each.rating
+        return "%.2f"%(sum / len(r_list))
 
 class ReviewTempUrl(models.Model):
     temp_url = models.CharField(blank=False, max_length=32, unique=True)

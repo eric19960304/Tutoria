@@ -11,14 +11,33 @@
             {{tutor.university.name}}<br/>
             {% if tutor.isPrivateTutor %}
                 <b>Private tutor</b><br/>
-                Hourly rate: {{tutor.hourly_rate}}<br/>
+                Hourly rate: HKD {{tutor.hourly_rate|floatformat:0}}<br/>
             {% else %}
                 <b>Contracted tutor</b><br/>
             {% endif %}
-            bio: {{tutor.bio}}<br/>
-            <br/>
-            Recent review: <br/>
+            Bio: {{tutor.bio}}<br/>
+            {% if tutor.course %}
+                Courses teaching: <br/>
+                <ul>
+                {% for c in tutor.course.all %}
+                    <li>{{c.code}} {{c.name}}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% if tutor.course %}
+                Tag subject: <br/>
+                <ul>
+                {% for t in tutor.tag.all %}
+                    #{{t.name}} 
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% if reviews|length > 2 %}
+                Average review rating: {{tutor.getAverageRating}}
+                <br/>
+            {% endif %}
             {% if reviews %}
+                Recent review: <br/>
                 {% for each in reviews %}
                     <hr/>
                     <p>
