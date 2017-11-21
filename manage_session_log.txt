@@ -7,3 +7,8 @@
 [12/Nov/2017 15:30:00] <Session management finished>
 [12/Nov/2017 15:30:00] <Session management begin...>
 [12/Nov/2017 15:30:00] <Session management finished>
+[21/Nov/2017 16:00:00] <Session management begin...>
+[21/Nov/2017 16:00:00]   Deleted expired ReviewTempUrls: <QuerySet [<ReviewTempUrl: Review url 8: david<->eric>, <ReviewTempUrl: Review url 9: david<->eric>, <ReviewTempUrl: Review url 10: david<->eric>]>
+[21/Nov/2017 16:00:00] <Session management finished>
+[21/Nov/2017 16:00:00] <Session management begin...>
+[21/Nov/2017 16:00:00] <Session management finished>

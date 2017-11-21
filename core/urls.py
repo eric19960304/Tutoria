@@ -17,7 +17,9 @@ urlpatterns = [
     url(r'^message/$', views.notification, name='view_notification'),
     url(r'^tutorprofile/(?P<tutor_id>[0-9]+)$', views.viewTutorProfile, name='view_tutor_profile'),
     url(r'^reviewtutor/(?P<url_token>\w+)/$', views.reviewTutor, name="review_tutor"),
+    url(r'^profile/$', views.editProfile, name='edit_profile'),
 
+    url(r'^password/$', views.changePassword, name='change_password'),
     url(r'^password_reset/$', auth_views.password_reset, name='password_reset'),
     url(r'^password_reset/done/$', auth_views.password_reset_done, name='password_reset_done'),
     url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',

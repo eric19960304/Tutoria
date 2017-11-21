@@ -36,8 +36,9 @@
         <div class="col-xs-7">
         <select name="university">
             <option disabled selected value> -Please select- </option>
-            <option value="HKU">HKU</option>
-            <option value="CUHK">CUHK</option>
+            {% for u in university %}
+                <option value="{{u.abbrev}}">{{u.name}}</option>
+            {% endfor %}
         </select>
         <br/><br/>        
         </div>

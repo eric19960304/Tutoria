@@ -86,7 +86,7 @@ Tutor type: {{tutor.getTutorType}} <br/>
         <button type="submit" onclick="return validateFrom();">Book</button>
     {% endif %}
     <br/><br/>
-    <div id="error_msg"><b style="color:red;">{{error_msg}}</b></div>
+    <div id="error_msg"><b style="color:red;">{{error_msg | linebreaks}}</b></div>
 </form>
 
 {% endblock %}

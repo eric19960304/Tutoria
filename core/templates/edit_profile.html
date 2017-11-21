@@ -1,0 +1,61 @@
+{% extends 'base.html' %} 
+{% block title %}Edit Profile{% endblock %} 
+
+{% block content %}
+    <h2>My profile</h2>
+<form action="{% url 'edit_profile' %}" method="POST" id="profile_form">
+    {% csrf_token %}
+
+    First name: <input name="first_name" type="text" maxlength="30" value="{{user.first_name}}">
+    <br/>
+    Last name: <input name="last_name" type="text" maxlength="30" value="{{user.last_name}}">
+    <br/>
+    Email: <input name="email" type="text" maxlength="254" value="{{user.email}}">
+    <br/>
+    {% if user.profile.isTutor %}
+        Add blacked-out timeslot: <br/>
+
+        Edit Bio: <textarea rows="3" cols="50" name="bio" form="profile_form" maxlength="500">{{s_bio}}</textarea><br/>
+
+        Courses:
+        <select name="course" multiple size="4">
+            {% for c in course %}
+                {% if c in s_course %}
+                    <option value="{{c.code}}" selected>{{c.code}} {{c.name}}</option>
+                {% else %}
+                    <option value="{{c.code}}">{{c.code}} {{c.name}}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+
+        Tags:
+        <select name="tag" multiple  size="4">
+            {% for t in tag %}
+                {% if t in s_tag %}
+                    <option value="{{t.name}}" selected>{{t.name}}</option>
+                {% else %}
+                    <option value="{{t.name}}">{{t.name}}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+
+        <select name="university">
+            <option disabled selected value> -Please select- </option>
+            {% for u in university %}
+                <option value="{{abbrev}}">{{u.name}}</option>
+            {% endfor %}
+        </select>
+
+        
+    {% endif %}
+    <br/>
+    <a href="{% url 'change_password' %}">change password</a>
+    <br/><br/>
+    <input type="submit" value="Submit" />
+    
+    <div id="msg"><b style="color:red;">{{msg | linebreaks}}</b></div>
+    
+
+</form>
+
+{% endblock %}

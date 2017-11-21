@@ -46,13 +46,20 @@
     {% if tutor_session_list %}
     
         All Appointed Sessions:<br/><br/>
-
-        {% for s in tutor_session_list %}
-            {{s.getBookedDateStr}}:  
-            {{s.getStartTimeStr}} - {{s.getEndTimeStr}} 
-            ( with {{s.student.profile.getUsername}} )<br/>
-        {% endfor %}
-        <br/><br/>
+        <form action="{% url 'view_timetable' %}" method="post">
+        {% csrf_token %}
+            {% for s in tutor_session_list %}
+                {{s.getBookedDateStr}}:  
+                {{s.getStartTimeStr}} - {{s.getEndTimeStr}} 
+                ( with {{s.student.profile.getUsername}} )<br/>
+            {% endfor %}
+            <br/><br/>
+            From
+            <input id="blacked_out_from" type="datetime-local" name="blackOutStartDatetime[]"/>
+            to
+            <input id="blacked_out_to" type="datetime-local" name="blackOutEndDatetime[]"/><br/>
+            <input type="submit" value="Add blacked-out timeslot">
+        </form>
     {% endif %}
 
     {% if not tutor_session_list and not student_session_list %}

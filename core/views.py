@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
@@ -13,7 +14,116 @@ from .handleTransaction import *
 from .factory import initDatabase, createUser
 from .utility import *
 from decimal import Decimal
+from collections import Counter
 
+@login_required
+def changePassword(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            return render(request, 'change_password.html', {'form': form, 'msg': "Your password was successfully updated!\n"})
+        else:
+            return render(request, 'change_password.html', {'form': form, 'msg': "Please correct the error below!\n"})
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'change_password.html', {'form': form})
+
+@login_required
+def editProfile(request):
+    
+    user = request.user
+    if user.profile.isTutor:
+        s_tag = user.profile.tutor.tag.all()
+        s_course = user.profile.tutor.course.all()
+        tag = Tag.objects.all()
+        course = Course.objects.all()
+        university = University.objects.all()
+    
+    if not request.POST:
+        if user.profile.isTutor:
+            
+            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': user.profile.tutor.bio}
+        else:
+            context = {}
+        return render(request, 'edit_profile.html', context)
+    else:
+        changeFlag = False
+        msg = ""
+
+        
+        if 'first_name' in request.POST and request.POST['first_name']!=user.first_name:
+            user.first_name =  request.POST['first_name']
+            user.save()
+            changeFlag = True
+            msg += "First name has been changed.\n"
+        if 'last_name' in request.POST and request.POST['last_name']!=user.last_name:
+            user.last_name =  request.POST['last_name']
+            user.save()
+            changeFlag = True
+            msg += "Last name has been changed.\n"
+        if 'email' in request.POST and request.POST['email']!=user.email:
+            user.email =  request.POST['email']
+            user.save()
+            changeFlag = True
+            msg += "Email has been changed.\n"
+        
+
+        if user.profile.isTutor:
+            t = Tutor.objects.filter(profile=user.profile)[0]
+            if 'bio' in request.POST and request.POST['bio']!=user.profile.tutor.bio:
+                t.bio = request.POST['bio']
+                t.save()
+                msg += "Bio has been changed.\n"
+                changeFlag = True
+
+            if 'university' in request.POST and request.POST['university']!=user.profile.tutor.university:
+                u = University.objects.filter(abbrev=request.POST['university'])
+                t.university = u
+                t.save()
+                msg += "University has been changed.\n"
+                changeFlag = True
+                
+            if 'course' in request.POST:
+                course_list = request.POST.getlist('course')
+                course_code_list = [c.code for c in s_course]
+                if Counter(course_code_list)!=Counter(course_list): # check if 2 lists contain same content
+                    t.course.clear()
+                    for each in course_list:
+                        c = Course.objects.filter(code=each)[0]
+                        t.course.add(c)
+                    t.save()
+                    msg += "Courses has been changed.\n"
+                    changeFlag = True
+            if 'tag' in request.POST:
+                tag_list = request.POST.getlist('tag')
+                tag_name_list = [t.name for t in s_tag]
+                if Counter(tag_name_list)!=Counter(tag_list): # check if 2 lists contain same content
+                    t.tag.clear()
+                    for each in tag_list:
+                        ta = Tag.objects.filter(name=each)[0]
+                        t.tag.add(ta)
+                    t.save()
+                    msg += "Tags has been changed.\n"
+                    changeFlag = True
+
+        if not changeFlag:
+            msg = "No change has made."
+
+        if user.profile.isTutor:
+            s_tag = Tag.objects.filter(tutor=user.profile.tutor)
+            s_course = Course.objects.filter(tutor=user.profile.tutor)
+            tag = Tag.objects.all()
+            course = Course.objects.all()
+            university = University.objects.all()
+            s_bio = Tutor.objects.filter(profile=user.profile)[0].bio
+            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': s_bio, 'msg':msg}
+        else:
+            context = {'msg':msg}
+
+        return render(request, 'edit_profile.html', context)
+        
 
 
 @login_required
@@ -205,7 +315,10 @@ def afterBooked(request):
 def searchTutor(request):
     
     if not request.GET:
-        context = {'tag':Tag.objects.all(), 'course': Course.objects.all() }
+        tag = Tag.objects.all()
+        course = Course.objects.all()
+        university = University.objects.all()
+        context = {'tag': tag, 'course': course, 'university': university }
         return render(request, 'search_tutor.html', context)
     else:
         tutor_list = Tutor.objects.exclude(tutor_type__isnull=True) \
