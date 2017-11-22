@@ -171,47 +171,71 @@ def viewTimetable(request):
     if request.user.username =="admin":
         return HttpResponse("You logged in as admin.")
 
-    user_profile = request.user.profile
-
-    context={'profile':user_profile}
-
-    if(user_profile.isStudent):
-        s = Session.objects.filter(isBlackedout=False).exclude(status="ended").filter(student=user_profile.student).order_by('-booking_date')
-        context['student_session_list'] = s
-    if(user_profile.isTutor):
-        s = Session.objects.filter(isBlackedout=False).exclude(status="ended").filter(tutor=user_profile.tutor).order_by('-booking_date')
-        context['tutor_session_list'] = s
+    context={}
+    msg = ""
 
     if request.POST:
-        IDs = request.POST.getlist('session_id')
-        hasPrivateTutor = False
-        hasCancelled = False
-        user_debit_amount = 0
-        msg = ""
+        if request.POST['form_type']=="cancel": # cancel session
+            IDs = request.POST.getlist('session_id')
+            hasPrivateTutor = False
+            hasCancelled = False
+            user_debit_amount = 0
 
-        if len(IDs)==0:
-            return render(request, 'timetable.html', context)
-        
-        for each in IDs:
-            s = Session.objects.get(pk=each)
-            if s.tutor.isPrivateTutor:
-                hasPrivateTutor = True
-                user_debit_amount += bookingRefund(s)
-            if s.status =="booked":
-                # send email to tutor
-                sendCancelEmailToTutor(s)
-                msg += "\nSession at {} from {} to {} canceled successfully.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
-                hasCancelled = True
-                s.delete()
-            else:
-                msg += "\nSession at {} from {} to {} will begin within 24 hours and cannot be cancelled.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
+            if len(IDs)==0:
+                return render(request, 'timetable.html', context)
+            
+            for each in IDs:
+                s = Session.objects.get(pk=each)
+                if s.tutor.isPrivateTutor:
+                    hasPrivateTutor = True
+                    user_debit_amount += bookingRefund(s)
+                if s.status =="booked":
+                    # send email to tutor
+                    sendCancelEmailToTutor(s)
+                    msg += "\nSession at {} from {} to {} canceled successfully.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
+                    hasCancelled = True
+                    s.delete()
+                else:
+                    msg += "\nSession at {} from {} to {} will begin within 24 hours and cannot be cancelled.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
 
-        if hasPrivateTutor and hasCancelled:
-                    msg += '%.2f'%user_debit_amount + ' HKD has been refunded to your wallet.'
-        
-        context['cancel_session_msg']=msg
+            if hasPrivateTutor and hasCancelled:
+                        msg += '%.2f'%user_debit_amount + ' HKD has been refunded to your wallet.'
+            
+            context['msg']=msg
+        else:
+            if request.user.profile.isTutor:
+                start_date = request.POST['blackOutStartDatetime']
+                end_date = request.POST['blackOutEndDatetime']
+                if start_date!="" and end_date!="":
+                    
+                    sd = toLocalDatetime(parse_datetime(start_date))
+                    ed = toLocalDatetime(parse_datetime(end_date))
+                    if sd < ed and getCurrentDatetime() < sd:
+                        timeslot = Session(tutor=request.user.profile.tutor, start_date=sd, end_date=ed, isBlackedout=True)
+                        timeslot.save()
+                        context['msg']="Timeslot you selected has been blacked-out.\n"
+                    else:
+                        context['msg']="Timeslot you selected is invalid.\n"
     
+    user_profile = request.user.profile
+    context['profile']=user_profile
+
+    if(user_profile.isStudent):
+        s = Session.objects.filter(student=user_profile.student).filter(isBlackedout=False).exclude(status="ended").order_by('-booking_date')
+        context['student_session_list'] = s
+    if(user_profile.isTutor):
+        s = Session.objects.filter(tutor=user_profile.tutor).filter(isBlackedout=False).exclude(status="ended").order_by('-booking_date')
+        context['tutor_session_list'] = s
+        current = getCurrentDatetime()
+        b = Session.objects.filter(tutor=user_profile.tutor).filter(isBlackedout=True).filter(end_date__gte=current).order_by('-start_date')
+        unavailable_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in b]
+        context['blackedOutTimeslots'] = unavailable_time
+
     return render(request, 'timetable.html', context)
+
+
+    
+    
 
 
 
@@ -230,8 +254,8 @@ def bookTutor(request, tutor_id):
     # get tutor unavaliableTimeslot in next 7 date
     current = getCurrentDatetime()
     week_after = current + timedelta(days=7)
-    allTimeObj = Session.objects.filter(tutor=tutor).filter(start_date__date__range=[current,week_after])
-    unavailable_time = [ getDatetimeStr(t.start_date)+" - "+getDatetimeStr(t.end_date) for t in allTimeObj]
+    allTimeObj = Session.objects.filter(tutor=tutor).filter(end_date__gt=current)
+    unavailable_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in allTimeObj]
     
     context = {'tutor': tutor, 'unavailable_time': unavailable_time}
     if tutor.isPrivateTutor:

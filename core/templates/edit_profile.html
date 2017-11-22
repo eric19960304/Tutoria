@@ -52,8 +52,9 @@
     <a href="{% url 'change_password' %}">change password</a>
     <br/><br/>
     <input type="submit" value="Submit" />
-    
-    <div id="msg"><b style="color:red;">{{msg | linebreaks}}</b></div>
+    {% if msg %}
+        <div id="msg"><b style="color:red;">{{msg | linebreaks}}</b></div>
+    {% endif %}
     
 
 </form>

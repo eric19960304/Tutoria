@@ -25,49 +25,66 @@
         }
     </script>
 
-   {% if student_session_list %}
+    {% if user.profile.isStudent %}
 
-        All Booked Sessions:<br/><br/>
-
-        <form action="{% url 'view_timetable' %}" method="post">
-        {% csrf_token %}
-            {% for s in student_session_list %}
-                <input type="checkbox" name="session_id" value="{{s.id}}"/>{{s.getBookedDateStr}}:  
-                {{s.getStartTimeStr}} - {{s.getEndTimeStr}} 
-                ( with {{s.tutor.profile.getUserFullName}} )<br/>
-            {% endfor %}
-            <input type="checkbox" id="select_all" onclick="selectAll()"/> Select All 
-            <br/><br/>
-            <input type="submit" value="Cancel Session" onclick="return confirmCancelSession()">
-        </form>
+        {% if not student_session_list %}
+            <p>You don't have any session yet.</p>
+        {% else %}
+            All Booked Sessions:<br/>
+            <form action="{% url 'view_timetable' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="cancel"/>
+                {% for s in student_session_list %}
+                    <input type="checkbox" name="session_id" value="{{s.id}}"/>{{s.getBookedDateStr}}:  
+                    {{s.getStartTimeStr}} - {{s.getEndTimeStr}} 
+                    ( with {{s.tutor.profile.getUserFullName}} )<br/>
+                {% endfor %}
+                <input type="checkbox" id="select_all" onclick="selectAll()"/> Select All 
+                <br/><br/>
+                <input type="submit" value="Cancel Session" onclick="return confirmCancelSession()">
+            </form>
+        {% endif %}
         <br/><br/>
     {% endif %}
 
-    {% if tutor_session_list %}
-    
-        All Appointed Sessions:<br/><br/>
-        <form action="{% url 'view_timetable' %}" method="post">
-        {% csrf_token %}
+    {% if user.profile.isTutor %}
+
+        {% if not tutor_session_list %}
+            <p>You don't have any session yet.</p>
+        {%else%}
+            All Appointed Sessions:<br/>
             {% for s in tutor_session_list %}
                 {{s.getBookedDateStr}}:  
                 {{s.getStartTimeStr}} - {{s.getEndTimeStr}} 
                 ( with {{s.student.profile.getUsername}} )<br/>
             {% endfor %}
-            <br/><br/>
-            From
-            <input id="blacked_out_from" type="datetime-local" name="blackOutStartDatetime[]"/>
-            to
-            <input id="blacked_out_to" type="datetime-local" name="blackOutEndDatetime[]"/><br/>
-            <input type="submit" value="Add blacked-out timeslot">
+        {% endif %}
+        <br/><br/>
+        {% if not blackedOutTimeslots %}
+            <p>You don't have any blacked-out timeslot yet.</p>
+        {%else%}
+            All Blacked-out Timeslot:<br/>
+            {% for each in blackedOutTimeslots %}
+                {{ each }} <br/>
+            {% endfor %}
+        {% endif %}
+        <br/><br/>
+        Black out timeslot:
+        <form action="{% url 'view_timetable' %}" method="post">
+            {% csrf_token %}
+            <div id="timeslot_picker_group">
+                <input type="hidden" name="form_type" value="blackout"/>
+                
+                From: <input type="datetime-local" name="blackOutStartDatetime"><br/>
+                To  : <input type="datetime-local" name="blackOutEndDatetime"><br/>
+            </div>
+            <br/>
+            <input type="submit" value="Add blacked-out timeslot" />
         </form>
     {% endif %}
 
-    {% if not tutor_session_list and not student_session_list %}
-        <p>You don't have any session yet.</p>
-    {% endif %}
-    
-    {% if cancel_session_msg %}
-    <div id="msg"><b style="color:red;">{{cancel_session_msg | linebreaks }}</b></div>
+    {% if msg %}
+        <div id="msg"><b style="color:red;">{{msg | linebreaks }}</b></div>
     {% endif %}
     
 {% endblock %}
