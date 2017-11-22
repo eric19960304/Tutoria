@@ -38,9 +38,9 @@
                     </a>
                     <a href="{% url 'view_notification' %}">
                         {%if user.profile.hasNotification %}
-                        | <li>Message({{user.profile.getNotificationNum}})</li>
+                        | <li>Notification({{user.profile.getNotificationNum}})</li>
                         {% else %}
-                        | <li>Message</li>
+                        | <li>Notification</li>
                         {% endif %}
                     </a>
                     <a href="{% url 'logout' %}" id="logoutButton" class="pull-right">

@@ -17,6 +17,57 @@ from decimal import Decimal
 from collections import Counter
 
 @login_required
+def addToWallet(request):
+    user= request.user
+    if not user.profile.isStudent:
+        request.session['title'] = "Restricted Access"
+        request.session['message'] = "Restricted Access"
+        return HttpResponseRedirect(reverse('message'))
+
+    if not request.POST:
+        return render(request, 'add_to_wallet.html')
+    else:
+        if 'amount' in request.POST:
+            try:
+                amount = float(request.POST['amount'])
+            except:
+                return render(request, 'add_to_wallet.html',{'msg':"Invalid input"})
+
+            studentAddToWallet(user.profile, amount)
+
+            request.session['title'] = "Topup success"
+            request.session['message'] = "HKD {} has added to your wallet.".format("%.2f"%amount)
+            return HttpResponseRedirect(reverse('message'))
+        else:
+            return render(request, 'add_to_wallet.html')
+
+
+@login_required
+def drawFromWallet(request):
+    user= request.user
+    if not user.profile.isTutor:
+        request.session['title'] = "Restricted Access"
+        request.session['message'] = "Restricted Access"
+        return HttpResponseRedirect(reverse('message'))
+
+    if not request.POST:
+        return render(request, 'draw_from_wallet.html')
+    else:
+        if 'amount' in request.POST:
+            try:
+                amount = float(request.POST['amount'])
+            except:
+                return render(request, 'draw_from_wallet.html',{'msg':"Invalid input"})
+
+            tutorDrawFromWallet(user.profile, amount)
+
+            request.session['title'] = "Transfer success"
+            request.session['message'] = "HKD {} has transfered to your bank account.".format("%.2f"%amount)
+            return HttpResponseRedirect(reverse('message'))
+        else:
+            return render(request, 'draw_from_wallet.html')
+
+@login_required
 def changePassword(request):
     if request.method == 'POST':
         form = PasswordChangeForm(request.user, request.POST)
@@ -234,11 +285,6 @@ def viewTimetable(request):
     return render(request, 'timetable.html', context)
 
 
-    
-    
-
-
-
 @login_required
 def bookTutor(request, tutor_id):
     if request.user.username =="admin":
@@ -324,17 +370,19 @@ def bookTutor(request, tutor_id):
         sendBookingEmailToTutor(s)
         sendBookingNotification( s, credited_amount)
 
-        request.session['booking_msg'] = "You have booked a session with "+tutor.profile.getUserFullName+"\nDate: "+s.getBookedDateStr+"\nTimeslot: "+s.getStartTimeStr+" to "+s.getEndTimeStr
+        request.session['message'] = "You have booked a session with "+tutor.profile.getUserFullName+"\nDate: "+s.getBookedDateStr+"\nTimeslot: "+s.getStartTimeStr+" to "+s.getEndTimeStr
+        request.session['title'] = "Book Tutor"
         if tutor.isPrivateTutor:
-            request.session['booking_msg'] += '\n'+('%.2f'%credited_amount) +' has been deducted from your wallet.'
+            request.session['message'] += '\n'+('%.2f'%credited_amount) +' has been deducted from your wallet.'
             if use_coupon and coupon_valid:
-                request.session['booking_msg'] += "\nCoupon has been used, 5 percent is saved :)"
+                request.session['message'] += "\nCoupon has been used, 5 percent is saved :)"
 
-        return HttpResponseRedirect(reverse('after_booked'))
+        return HttpResponseRedirect(reverse('message'))
 
 @login_required
-def afterBooked(request):
-    return render(request, 'after_booked.html', {'msg':request.session['booking_msg']})
+def message(request):
+    context={'msg':request.session['message'],'title': request.session['title']}
+    return render(request, 'message.html', context)
 
 def searchTutor(request):
     

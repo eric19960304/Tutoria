@@ -185,3 +185,5 @@ def reviewInvitation(s):
 
     s_n = Notification(profile = s.student.profile, title="Review Invitation" ,message = msg, date=getCurrentDatetime())
     s_n.save()
+
+

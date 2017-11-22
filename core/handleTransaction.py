@@ -1,6 +1,9 @@
 from .models import *
 from decimal import Decimal
 
+class TransactionException(Exception):
+    pass
+
 def hasSufficientBalance(student, tutor, isCouponUsed):
     if isCouponUsed:
         user_credit_amount = tutor.hourly_rate
@@ -74,3 +77,22 @@ def transferTutorFee(tutor):
         sys_wallet = Wallet.getSystemWallet()
         sys_wallet.credit( tutor_debit_amount )
         sys_wallet.save()
+
+def studentAddToWallet(profile, amount):
+    if amount > 0:
+        w = Wallet.objects.get(profile=profile)
+        w.debit( Decimal(amount) )
+        w.save()
+        print("{} : add HKD {} to wallet.".format(profile.student,amount))
+    else:
+        raise TransactionException
+
+
+def tutorDrawFromWallet(profile,amount):
+    if amount >0:
+        w = Wallet.objects.get(profile=profile)
+        w.credit( Decimal(amount) )
+        w.save()
+        print("{} : transfered HKD {} from wallet to bank account.".format(profile.tutor,amount))
+    else:
+        raise TransactionException

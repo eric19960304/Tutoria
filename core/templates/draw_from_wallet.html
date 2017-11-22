@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Withdraw amount{% endblock %}
+
+{% block content %}
+    
+    <form action="{% url 'draw_from_wallet' %}" method="POST" >
+        {% csrf_token %}
+        Amount to withdraw (HKD): <input type="number" step="0.01" name="amount"> <br/>
+        <input type="submit" value="Submit" />
+    </form>
+    {% if msg %}
+        <div id="msg"><b style="color:red;">{{msg | linebreaks}}</b></div>
+    {% endif %}
+{% endblock %}

@@ -5,4 +5,16 @@
 {% block content %}
     <h3>Your Wallet Balance is:</h3>
     <h2>HKD {{amount}}</h2>
+
+    {% if user.profile.isStudent %}
+        <a href="{% url 'add_to_wallet' %}" >
+            Top up wallet
+        </a>
+    {% endif %}
+
+    {% if user.profile.isTutor %}
+        <a href="{% url 'draw_from_wallet' %}" >
+            Withdraw money to bank account
+        </a>
+    {% endif %}
 {% endblock %}
