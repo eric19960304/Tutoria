@@ -144,7 +144,10 @@ class Tutor(models.Model):
         if len( Review.objects.filter(tutor=self) )>0:
             return Review.getAverageScore(self)
         else:
-            return 999
+            raise Exception
+    @property
+    def hasMoreThanTwoRating(self):
+        return len( Review.objects.filter(tutor=self) ) >= 3
 
 
 
@@ -226,21 +229,14 @@ class Coupon(models.Model):
     #used_date = models.DateTimeField(null=True, blank=True)
     #used_session = models.OneToOneField(Session, null=True, blank=True)
     def __str__(self):
-        return "Coupon "+str(self.id)
+        local_timezone = timezone(settings.TIME_ZONE)
+        return "Coupon ("+str(self.id)+"): code="+self.code+" , expire date="+self.expire_date.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')
     
     @staticmethod
     def validate( coupon_code):
         local_timezone = timezone(settings.TIME_ZONE)
         c = Coupon.objects.filter(code=coupon_code).filter(expire_date__gte=datetime.now().astimezone(local_timezone))
         return len(c)!=0
-    '''
-    @staticmethod
-    def markCouponUsed( coupon_code, session):
-        c = Coupon.objects.filter(code=coupon_code)
-        if len(c)!=0:
-            c[0].used_session = session
-            c[0].save()
-    '''
 
 class Review(models.Model):
     tutor = models.ForeignKey(Tutor, on_delete=models.CASCADE)

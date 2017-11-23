@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Coupon Management{% endblock %}
+
+{% block content %}
+    {% if coupon_list %}
+        Coupon List: <br/>
+        {% for each in coupon_list %}
+            {{each}} <br/>
+        {% endfor %}
+        <br/>
+    {% else %}
+        No coupon yet.<br/><br/>
+    {% endif %}
+    <form action="{% url 'admin_coupon' %}" method="POST" >
+        {% csrf_token %}
+        No. of coupon to generate: <input type="number" step="1" max="100" min="1" name="amount"> <br/>
+        Expire Dates: <input type="datetime-local" name="expire_date"><br/>
+        <input type="submit" value="Submit" />
+    </form>
+    {% if msg %}
+        <div id="msg"><b style="color:red;">{{msg | linebreaks}}</b></div>
+    {% endif %}
+{% endblock %}

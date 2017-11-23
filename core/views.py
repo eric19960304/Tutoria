@@ -17,6 +17,51 @@ from decimal import Decimal
 from collections import Counter
 
 @login_required
+def adminCoupon(request):
+    if request.POST:
+        if 'amount' in request.POST and 'expire_date' in request.POST and request.POST['amount']!="" and request.POST['expire_date']!="":
+            amount = int(request.POST['amount'])
+            expire_date = toLocalDatetime(parse_datetime(request.POST['expire_date']))
+            for x in range(0, amount):
+                success = False
+                while not success:
+                    try:
+                        code = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(12))
+                        c = Coupon(code=code, expire_date=expire_date)
+                        c.save()
+                        success = True
+                    except IntegrityError:
+                        pass
+            msg="{} coupon is successfully generated.".format(amount)
+            coupon_list = [ c for c in Coupon.objects.order_by('expire_date') if c.validate]
+            context = {'coupon_list': coupon_list,'msg':msg}
+            return render(request, 'admin_coupon.html', context)
+        else:
+            coupon_list = [ c for c in Coupon.objects.order_by('expire_date') if c.validate]
+            context = {'coupon_list': coupon_list, 'msg':"Please enter the amount and expire date."}
+            return render(request, 'admin_coupon.html', context)
+
+    else:
+        coupon_list = [ c for c in Coupon.objects.order_by("expire_date") if c.validate]
+        context = {'coupon_list': coupon_list}
+        return render(request, 'admin_coupon.html', context)
+
+@login_required
+def checkNotification(request):
+    if request.GET:
+        if 'id' in request.GET:
+            id = int(request.GET['id'])
+            n = Notification.objects.get(pk=id)
+            n.checked=True
+            n.save()
+            return HttpResponse("Successful")
+        else:
+            return HttpResponse("Unsuccessful")
+    else:
+        return HttpResponse("Unsuccessful")
+
+
+@login_required
 def adminDrawFromWallet(request):
     user=request.user
     if user.username!="admin":
@@ -84,7 +129,6 @@ def addToWallet(request):
             return HttpResponseRedirect(reverse('message'))
         else:
             return render(request, 'add_to_wallet.html')
-
 
 @login_required
 def drawFromWallet(request):
@@ -229,9 +273,7 @@ def editProfile(request):
             context = {'msg':msg}
 
         return render(request, 'edit_profile.html', context)
-        
-
-
+      
 @login_required
 def reviewTutor(request, url_token):
     url_not_found = False
@@ -260,8 +302,6 @@ def reviewTutor(request, url_token):
         context = {'submitted':True}
         return render(request, 'review_tutor.html', context)
 
-    
-
 @login_required
 def viewWallet(request):
     
@@ -273,7 +313,6 @@ def viewWallet(request):
 
     context={'amount':wallet.amount, 'transactionHistory':transactionHistory}
     return render(request, 'view_wallet.html', context)
-
 
 @login_required
 def viewTimetable(request):
@@ -342,7 +381,6 @@ def viewTimetable(request):
         context['blackedOutTimeslots'] = unavailable_time
 
     return render(request, 'timetable.html', context)
-
 
 @login_required
 def bookTutor(request, tutor_id):
@@ -443,7 +481,6 @@ def bookTutor(request, tutor_id):
 
     return render(request, 'book_tutor.html', context)
 
-
 @login_required
 def message(request):
     context={'msg':request.session['message'],'title': request.session['title']}
@@ -529,12 +566,37 @@ def signup(request):
 def notification(request):
     if request.user.username =="admin":
         return HttpResponse("You logged in as admin.")
-    
-    notif_list = Notification.objects.filter(profile=request.user.profile).order_by('-date')
 
-    context={'list':notif_list}
-    return render(request, 'notification.html', context)
+    if request.POST:
+        msg=""
+        context={}
+        if 'message_id' in request.POST:
+            IDs = request.POST.getlist('message_id')
 
+        if len(IDs)==0:
+            notif_list = Notification.objects.filter(profile=request.user.profile).order_by('-date')
+            context={'list':notif_list,'msg': "No item is selected."}
+            return render(request, 'notification.html', context)
+        
+        for each in IDs:
+            try:
+                s = Notification.objects.get(pk=each)
+            except:
+                notif_list = Notification.objects.filter(profile=request.user.profile).order_by('-date')
+                context={'list':notif_list,'msg': "Item is already deleted."}
+                return render(request, 'notification.html', context)
+            s.delete()
+        
+        msg+="{} notifications has been deleted.".format(len(IDs))
+        context['msg']=msg
+
+        notif_list = Notification.objects.filter(profile=request.user.profile).order_by('-date')
+        context['list']=notif_list
+        return render(request, 'notification.html', context)
+    else:
+        notif_list = Notification.objects.filter(profile=request.user.profile).order_by('-date')
+        context={'list':notif_list}
+        return render(request, 'notification.html', context)
 
 def homepage(request):
     return render(request, 'homepage.html')

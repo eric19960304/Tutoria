@@ -32,10 +32,11 @@
                 {% endfor %}
                 </ul>
             {% endif %}
-            {% if reviews|length > 2 %}
+            {% if tutor.hasMoreThanTwoRating %}
                 Average review rating: {{tutor.getAverageRating}}
                 <br/>
             {% endif %}
+            <br/>
             {% if reviews %}
                 Recent review: <br/>
                 {% for each in reviews %}

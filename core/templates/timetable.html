@@ -24,7 +24,7 @@
 
         }
     </script>
-
+    <h2>My Timetable</h2><br/>
     {% if user.profile.isStudent %}
 
         {% if not student_session_list %}
@@ -35,11 +35,11 @@
             {% csrf_token %}
             <input type="hidden" name="form_type" value="cancel"/>
                 {% for s in student_session_list %}
-                    <input type="checkbox" name="session_id" value="{{s.id}}"/>{{s.getBookedDateStr}}:  
+                    <input type="checkbox" name="session_id" value="{{s.id}}" class="checkbox_group"/> {{s.getBookedDateStr}}:  
                     {{s.getStartTimeStr}} - {{s.getEndTimeStr}} 
                     ( with {{s.tutor.profile.getUserFullName}} )<br/>
                 {% endfor %}
-                <input type="checkbox" id="select_all" onclick="selectAll()"/> Select All 
+                <input type="checkbox" id="select_all" onclick="selectAll()" class="checkbox_group"/> Select All 
                 <br/><br/>
                 <input type="submit" value="Cancel Session" onclick="return confirmCancelSession()">
             </form>
@@ -86,5 +86,10 @@
     {% if msg %}
         <div id="msg"><b style="color:red;">{{msg | linebreaks }}</b></div>
     {% endif %}
-    
+    <style>
+        .checkbox_group{
+            width: 16px;
+            height: 16px;
+        }
+    </style>
 {% endblock %}

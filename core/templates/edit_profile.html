@@ -2,7 +2,7 @@
 {% block title %}Edit Profile{% endblock %} 
 
 {% block content %}
-    <h2>My profile</h2>
+    <h2>My profile</h2><br/>
 <form action="{% url 'edit_profile' %}" method="POST" id="profile_form">
     {% csrf_token %}
 
@@ -13,8 +13,7 @@
     Email: <input name="email" type="text" maxlength="254" value="{{user.email}}">
     <br/>
     {% if user.profile.isTutor %}
-        Add blacked-out timeslot: <br/>
-
+        <br/>
         Edit Bio: <textarea rows="3" cols="50" name="bio" form="profile_form" maxlength="500">{{s_bio}}</textarea><br/>
 
         Courses:

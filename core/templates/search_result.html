@@ -5,48 +5,79 @@
 {% block content %}
         <script>
             function sortByHourlyRate(){
-
+                var value = $("#sort_by_hourly_rate").val();
+                if(value=="-hourly_rate"){
+                    var $wrapper = $('.wrapper');
+                    $wrapper.find('.tutor').sort(function (a, b) {
+                        return +b.dataset.hourlyrate - +a.dataset.hourlyrate;
+                    })
+                    .appendTo( $wrapper );
+                }else{
+                    var $wrapper = $('.wrapper');
+                    $wrapper.find('.tutor').sort(function (a, b) {
+                        return +a.dataset.hourlyrate - +b.dataset.hourlyrate;
+                    })
+                    .appendTo( $wrapper );
+                }
             }
             function sortByAverageRating(){
-                
+                var value = $("#sort_by_average_rating").val();
+                if(value=="-average_rating"){
+                    var $wrapper = $('.wrapper');
+                    $wrapper.find('.tutor').sort(function (a, b) {
+                        return +b.dataset.averagerating - +a.dataset.averagerating;
+                    })
+                    .appendTo( $wrapper );
+                }else{
+                    var $wrapper = $('.wrapper');
+                    $wrapper.find('.tutor').sort(function (a, b) {
+                        return +a.dataset.averagerating - +b.dataset.averagerating;
+                    })
+                    .appendTo( $wrapper );
+                }
             }
         </script>
     
         <h2>Search Result</h2>
         <hr/>
         Sort by hourly rate:
-        <select name="sort_by_hourly_rate" onchange="sortByHourlyRate()">
+        <select id="sort_by_hourly_rate" name="sort_by_hourly_rate" onchange="sortByHourlyRate()">
             <option disabled selected value> -Please select- </option>
-            <option value="Descending">Descending</option>
-            <option value="Ascending">Ascending</option>
+            <option value="-hourly_rate">Descending</option>
+            <option value="+hourly_rate">Ascending</option>
         </select>
         <br/>
         Sort by average rating:
-        <select name="sort_by_average_rating" onchange="sortByAverageRating()">
+        <select id="sort_by_average_rating" name="sort_by_average_rating" onchange="sortByAverageRating()">
             <option disabled selected value> -Please select- </option>
-            <option value="Descending">Descending</option>
-            <option value="Ascending">Ascending</option>
+            <option value="-average_rating">Descending</option>
+            <option value="+average_rating">Ascending</option>
         </select>
+        
         {% if tutor_list %}
-            {% for tutor in tutor_list %}
-                <hr/>
-                {{tutor.profile.getUserFullName}} <br/>
-                {{tutor.university.name}}<br/>
-                {% if tutor.isPrivateTutor %}
-                    Hourly rate: {{tutor.hourly_rate}}<br/>
-                {% endif %}
-                {% if review_score %}
-                    Average review: {{review_score}}<br/>
-                {% endif %}
-                <a href="{% url 'view_tutor_profile' tutor.id %}">View detailed profile</a> / 
-                <a href="{% url 'book_tutor' tutor.id %}">Book this tutor</a>
-                
-            {% endfor %}
+            <div class="wrapper">
+                {% for tutor in tutor_list %}
+                    <div class="tutor" data-hourlyrate="{{tutor.hourly_rate}}" data-averagerating="{% if tutor.hasMoreThanTwoRating %}{{tutor.getAverageRating}}{% else %}0{% endif %}">
+                        <hr/>
+                        {{tutor.profile.getUserFullName}} <br/>
+                        {{tutor.university.name}}<br/>
+                        {% if tutor.isPrivateTutor %}
+                            Hourly rate: {{tutor.hourly_rate}}<br/>
+                        {% endif %}
+                        {% if tutor.hasMoreThanTwoRating %}
+                            Average review: {{tutor.getAverageRating}}<br/>
+                        {% endif %}
+                        <a href="{% url 'view_tutor_profile' tutor.id %}">View detailed profile</a> / 
+                        <a href="{% url 'book_tutor' tutor.id %}">Book this tutor</a>
+                    </div>
+                {% endfor %}
+            </div>
         {% else %}
             <hr/>
             <p>No match</p>
         {% endif %}
         <hr/>
+        
 
         <div class="form-group">
         <div class="col-xs-7">

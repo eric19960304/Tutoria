@@ -21,6 +21,9 @@ urlpatterns = [
     url(r'^topup/$', views.addToWallet, name='add_to_wallet'),
     url(r'^withdraw/$', views.drawFromWallet, name='draw_from_wallet'),
     url(r'^adminwithdraw/$', views.adminDrawFromWallet, name='admin_draw_from_wallet'),
+    url(r'^admincoupon/$', views.adminCoupon, name='admin_coupon'),
+    url(r'^ajax/checknotification/$', views.checkNotification, name='check_notification'),
+
 
     url(r'^adminwallet/$', views.adminWallet, name='admin_wallet'),
     url(r'^password/$', views.changePassword, name='change_password'),
