@@ -37,6 +37,14 @@ Tutor type: {{tutor.getTutorType}} <br/>
         {% endfor %}
     </ul>
 {% endif %}
+{% if occupied_time %}
+Occupied timeslot: <br/>
+<ul>
+    {% for each in occupied_time %}
+        <li>{{ each }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
 <form action="{% url 'book_tutor' tutor.id %}" method="POST">
     {% csrf_token %} select date:
     <input id="booking_date" type="date" name="booking_date" /><br/>
@@ -86,22 +94,27 @@ Tutor type: {{tutor.getTutorType}} <br/>
         <button type="submit" onclick="return validateFrom();">Book</button>
     {% endif %}
     <br/><br/>
-    <div id="error_msg"><b style="color:red;">{{error_msg | linebreaks}}</b></div>
+    {% if msg %}
+        <div id="msg"><b style="color:red;">{{msg | linebreaks}}</b></div><br/>
+    {% endif %}
+    <p>Remind: Students is not allowed to book sessions less than 24 hours from the scheduled start time.</p>
+    
 </form>
 
 <script>
-    var today = new Date();
-    var dd = today.getDate();
-    var mm = today.getMonth()+1; //January is 0!
-    var yyyy = today.getFullYear();
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    var dd = tomorrow.getDate();
+    var mm = tomorrow.getMonth()+1; //January is 0!
+    var yyyy = tomorrow.getFullYear();
     if(dd<10){
             dd='0'+dd
         } 
         if(mm<10){
             mm='0'+mm
         } 
-    today = yyyy+'-'+mm+'-'+dd;
-    document.getElementById("booking_date").setAttribute("min", today);
+    tomorrow = yyyy+'-'+mm+'-'+dd;
+    document.getElementById("booking_date").setAttribute("min", tomorrow);
 </script>
 
 {% endblock %}

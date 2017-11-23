@@ -1,9 +1,11 @@
 from .models import *
 from decimal import Decimal
+from .utility import *
 
 class TransactionException(Exception):
     pass
 
+# only check, no money is transfered
 def hasSufficientBalance(student, tutor, isCouponUsed):
     if isCouponUsed:
         user_credit_amount = tutor.hourly_rate
@@ -37,9 +39,14 @@ def bookingCredit(session):
         sys_wallet = Wallet.getSystemWallet()
         sys_wallet.debit( user_credit_amount )
         sys_wallet.save()
+
+        # record the transaction
+        t = Transaction(profile=student.profile, date=getCurrentDatetime(), amount=user_credit_amount, session=session, isDebit=False,isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee Payment from Student")
+        t.save()
         
         return user_credit_amount
     else:
+        # contracted tutor, no money is transfered
         return 0
         
 def bookingRefund(session):
@@ -61,11 +68,17 @@ def bookingRefund(session):
         sys_wallet.credit( user_debit_amount )
         sys_wallet.save()
 
+        # record the transaction
+        t = Transaction(profile=student.profile, date=getCurrentDatetime(), amount=user_debit_amount, session=session, isDebit=True, isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee refund to student")
+        t.save()
+
         return user_debit_amount
     else:
         return 0
 
-def transferTutorFee(tutor):
+def transferTutorFee(session):
+    tutor = session.tutor
+    student = session.student
     if tutor.isPrivateTutor:
         tutor_debit_amount = tutor.hourly_rate
 
@@ -78,11 +91,22 @@ def transferTutorFee(tutor):
         sys_wallet.credit( tutor_debit_amount )
         sys_wallet.save()
 
+        # record
+        t = Transaction(profile=tutor.profile, date=getCurrentDatetime(), amount=tutor_debit_amount, session=session, isDebit=True, isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee deposit to tutor")
+        t.save()
+
+
 def studentAddToWallet(profile, amount):
     if amount > 0:
+        # debit the student's wallet
         w = Wallet.objects.get(profile=profile)
         w.debit( Decimal(amount) )
         w.save()
+
+        # record transaction
+        t = Transaction(profile=profile,  date=getCurrentDatetime(), amount=amount, session=session, isDebit=True, isTutorFeeRelated=True, isBankRelated=True, description="Top up wallet")
+        t.save()
+
         print("{} : add HKD {} to wallet.".format(profile.student,amount))
     else:
         raise TransactionException
@@ -93,6 +117,11 @@ def tutorDrawFromWallet(profile,amount):
         w = Wallet.objects.get(profile=profile)
         w.credit( Decimal(amount) )
         w.save()
+
+        # record transaction
+        t = Transaction(profile=profile,  date=getCurrentDatetime(), amount=amount, session=session, isDebit=False, isTutorFeeRelated=True, isBankRelated=True, description="Withdraw amount from wallet")
+        t.save()
+
         print("{} : transfered HKD {} from wallet to bank account.".format(profile.tutor,amount))
     else:
         raise TransactionException

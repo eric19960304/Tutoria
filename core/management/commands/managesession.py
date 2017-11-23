@@ -31,7 +31,7 @@ class Command(BaseCommand):
             print("[{}]   Ended session: {}".format(current.strftime("%d/%b/%Y %H:%M:%S"), each))
             reviewInvitation(each)
             print("[{}]   Sent review invitation to {}".format(current.strftime("%d/%b/%Y %H:%M:%S"), each.student))
-            transferTutorFee(each.tutor)
+            transferTutorFee(each)
             print("[{}]   Transfered fee to tutor {}".format(current.strftime("%d/%b/%Y %H:%M:%S"), each.tutor.profile.getUsername))
             sendTutorPaymentNotification(each)
             print("[{}]   Sent payment notification to tutor {}".format(current.strftime("%d/%b/%Y %H:%M:%S"), each.tutor.profile.getUsername))

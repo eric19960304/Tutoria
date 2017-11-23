@@ -213,7 +213,12 @@ def viewWallet(request):
         return HttpResponse("You logged in as admin.")
     
     wallet = request.user.profile.wallet
-    context={'amount':wallet.amount}
+
+    current = getCurrentDatetime()
+    monthBefore = current - timedelta(days=30)
+    transactionHistory = Transaction.objects.filter(profile=request.user.profile).filter(date__gte = monthBefore).order_by("-date")
+
+    context={'amount':wallet.amount, 'transactionHistory':transactionHistory}
     return render(request, 'view_wallet.html', context)
 
 
@@ -243,11 +248,12 @@ def viewTimetable(request):
                 if s.status =="booked":
                     # send email to tutor
                     sendCancelEmailToTutor(s)
-                    msg += "\nSession at {} from {} to {} canceled successfully.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
+                    msg += "Session at {} from {} to {} canceled successfully.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
                     hasCancelled = True
-                    s.delete()
+                    s.status = "cancelled"
+                    s.save()
                 else:
-                    msg += "\nSession at {} from {} to {} will begin within 24 hours and cannot be cancelled.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
+                    msg += "Session at {} from {} to {} will begin within 24 hours and cannot be cancelled.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
 
             if hasPrivateTutor and hasCancelled:
                         msg += '%.2f'%user_debit_amount + ' HKD has been refunded to your wallet.'
@@ -271,11 +277,11 @@ def viewTimetable(request):
     user_profile = request.user.profile
     context['profile']=user_profile
 
-    if(user_profile.isStudent):
-        s = Session.objects.filter(student=user_profile.student).filter(isBlackedout=False).exclude(status="ended").order_by('-booking_date')
+    if user_profile.isStudent :
+        s = Session.objects.filter(student=user_profile.student).filter(isBlackedout=False).exclude(status="ended").exclude(status="cancelled").order_by('-booking_date')
         context['student_session_list'] = s
-    if(user_profile.isTutor):
-        s = Session.objects.filter(tutor=user_profile.tutor).filter(isBlackedout=False).exclude(status="ended").order_by('-booking_date')
+    if user_profile.isTutor:
+        s = Session.objects.filter(tutor=user_profile.tutor).filter(isBlackedout=False).exclude(status="ended").exclude(status="cancelled").order_by('-booking_date')
         context['tutor_session_list'] = s
         current = getCurrentDatetime()
         b = Session.objects.filter(tutor=user_profile.tutor).filter(isBlackedout=True).filter(end_date__gte=current).order_by('-start_date')
@@ -297,24 +303,28 @@ def bookTutor(request, tutor_id):
     if tutor not in Tutor.objects.exclude(tutor_type__isnull=True):
         return HttpResponse("This Tutor not available.")
     
+    context={}
+
     # get tutor unavaliableTimeslot in next 7 date
     current = getCurrentDatetime()
     week_after = current + timedelta(days=7)
-    allTimeObj = Session.objects.filter(tutor=tutor).filter(end_date__gt=current)
-    unavailable_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in allTimeObj]
-    
-    context = {'tutor': tutor, 'unavailable_time': unavailable_time}
+    unavailableTimeObj = Session.objects.filter(tutor=tutor).filter(isBlackedout=True).filter(end_date__gt=current).filter(start_date__lt=week_after)
+    occupiedTimeObj = Session.objects.filter(tutor=tutor).filter(isBlackedout=False).filter(status="booked").filter(end_date__gt=current).filter(start_date__lt=week_after)
+    unavailable_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in unavailableTimeObj]
+    occupied_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in occupiedTimeObj]
+    context['tutor']=tutor
+    context['unavailable_time']=unavailable_time
+    context['occupied_time']=occupied_time
+
     if tutor.isPrivateTutor:
         amount = tutor.hourly_rate*Decimal(1.05)
         context['fee']= '%.2f'%amount
 
 
-    if not request.POST:
-        # form not submitted
-        return render(request, 'book_tutor.html', context)
-    
-    else:
+    if request.POST:
+
         # form submitted
+        context['msg']=""
         use_coupon = False
         coupon_valid = False
         student = request.user.profile.student
@@ -338,27 +348,27 @@ def bookTutor(request, tutor_id):
         
         # handle coupon invalid error
         if (use_coupon) and (not coupon_valid):
-            context['error_msg']="Coupon Code Invalid."
+            context['msg']="Coupon Code Invalid."
             return render(request, 'book_tutor.html', context)
         
         # check user wallet amount
         if tutor.isPrivateTutor:
             if not hasSufficientBalance(student, tutor, (use_coupon and coupon_valid) ):
-                context['error_msg']="Insufficient wallet balance."
+                context['msg']="Insufficient wallet balance."
                 return render(request, 'book_tutor.html', context)
         
         booking_time_valid = validateBookingDatetime(date_start, date_end, tutor)
         
         # check booking valid or not
         if not booking_time_valid :
-            context['error_msg']="The timeslot you slected is unavailable. Please select another."
+            context['msg']="The timeslot you slected is unavailable. Please select another."
             return render(request, 'book_tutor.html', context)
 
         fair_book = checkFairBook(date_start, date_end, tutor, student)
 
         # check booking valid or not
         if not fair_book :
-            context['error_msg']="Student only allowed booking ONE timeslot for the same tutor for any single day."
+            context['msg']="Student only allowed booking ONE timeslot for the same tutor for any single day."
             return render(request, 'book_tutor.html', context)
 
 
@@ -370,14 +380,19 @@ def bookTutor(request, tutor_id):
         sendBookingEmailToTutor(s)
         sendBookingNotification( s, credited_amount)
 
-        request.session['message'] = "You have booked a session with "+tutor.profile.getUserFullName+"\nDate: "+s.getBookedDateStr+"\nTimeslot: "+s.getStartTimeStr+" to "+s.getEndTimeStr
-        request.session['title'] = "Book Tutor"
+        context['msg'] += "You have booked a session with "+tutor.profile.getUserFullName+"\nDate: "+s.getBookedDateStr+"\nTimeslot: "+s.getStartTimeStr+" to "+s.getEndTimeStr
         if tutor.isPrivateTutor:
-            request.session['message'] += '\n'+('%.2f'%credited_amount) +' has been deducted from your wallet.'
+            context['msg'] += '\n'+('%.2f'%credited_amount) +' has been deducted from your wallet.'
             if use_coupon and coupon_valid:
-                request.session['message'] += "\nCoupon has been used, 5 percent is saved :)"
+               context['msg'] += "\nCoupon has been used, 5 percent is saved :)"
+        
+        # update the occupied time
+        occupiedTimeObj = Session.objects.filter(tutor=tutor).filter(isBlackedout=False).filter(status="booked").filter(end_date__gt=current).filter(start_date__lt=week_after)
+        occupied_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in occupiedTimeObj]
+        context['occupied_time']=occupied_time
 
-        return HttpResponseRedirect(reverse('message'))
+    return render(request, 'book_tutor.html', context)
+
 
 @login_required
 def message(request):

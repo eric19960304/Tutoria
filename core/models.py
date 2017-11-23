@@ -153,7 +153,7 @@ class Session(models.Model):
     booking_date = models.DateTimeField(blank=True, null=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
-    status = models.CharField(max_length=10,blank=True,null=True)
+    status = models.CharField(max_length=10,blank=True,null=True) # possible value: booked, cancelled, locked, ended
     isCouponUsed = models.BooleanField(default=False)
     isBlackedout = models.BooleanField(default=False)
     def __str__(self):
@@ -183,17 +183,24 @@ class Session(models.Model):
         return self.booking_date.astimezone(local_timezone).strftime('%e %b %Y, %H:%M')
 
 class Transaction(models.Model):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE,related_name="profile_transaction" )
-    involved_profile = models.ForeignKey(Profile, on_delete=models.CASCADE,related_name="involved_profile_transaction", null=True, blank=True)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE )
     date = models.DateTimeField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     session = models.ForeignKey(Session, blank=True, null=True)
     isDebit = models.BooleanField()
-    to_or_from_system = models.BooleanField(default=False)
-    to_or_from_bank = models.BooleanField(default=False)
+    isTutorFeeRelated = models.BooleanField(default=False)
+    isSystemWalletRelated = models.BooleanField(default=False)
+    isBankRelated = models.BooleanField(default=False)
     description = models.CharField(max_length=50, blank=False,null=True)
     def __str__(self):
-        return "Transaction "+str(self.id)+": "+self.profile.user.username+"'s transaction"
+        if self.isTutorFeeRelated:
+            return "Transaction "+str(self.id)+": "+self.profile.user.username+" <-> "+self.session.tutor.profile.user.username+", "+self.description
+        else:
+            return "Transaction "+str(self.id)+": "+self.profile.user.username+", "+self.description
+    @property
+    def getDate(self):
+        local_timezone = timezone(settings.TIME_ZONE)
+        return self.date.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')
 
 class System(models.Model):  #single record table storing system info
     wallet = models.OneToOneField(Wallet, on_delete=models.CASCADE)

@@ -17,4 +17,35 @@
             Withdraw money to bank account
         </a>
     {% endif %}
+    <br/><br/>
+    {% if transactionHistory %}
+        Transaction History (30 days):
+        <table>
+
+            <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Debit Amount</th>
+                <th>Credit Amount</th>
+            </tr>
+            {% for each in transactionHistory %}
+                {% if each.isTutorFeeRelated %}
+                    <tr>
+                        <td>{{each.getDate}}</td>
+                        <td>{{each.description}}: tutorial with {{each.session.tutor.profile.getUserFullName}}</td>
+                        <td>{% if each.isDebit %} {{each.amount}} {% endif %}</td>
+                        <td>{% if not each.isDebit %} {{each.amount}} {% endif %}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td>{{each.getDate}}</td>
+                        <td>{{each.description}}</td>
+                        <td>{% if each.isDebit %} {{each.amount}} {% endif %}</td>
+                        <td>{% if not each.isDebit %} {{each.amount}} {% endif %}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            
+        </table>
+    {% endif %}
 {% endblock %}
