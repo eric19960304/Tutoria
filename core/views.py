@@ -17,6 +17,50 @@ from decimal import Decimal
 from collections import Counter
 
 @login_required
+def adminDrawFromWallet(request):
+    user=request.user
+    if user.username!="admin":
+        request.session['title'] = "Restricted Access: admin only"
+        request.session['message'] = "Restricted Access: admin only"
+        return HttpResponseRedirect(reverse('message'))
+
+    if not request.POST:
+        return render(request, 'admin_draw_from_wallet.html')
+    else:
+        if 'amount' in request.POST:
+            try:
+                amount = float(request.POST['amount'])
+            except:
+                return render(request, 'admin_draw_from_wallet.html',{'msg':"Invalid input"})
+
+            adminDrawFromTutoriaWallet(amount)
+
+            request.session['title'] = "Transfer success"
+            request.session['message'] = "HKD {} has transfered to Tutoria bank account.".format("%.2f"%amount)
+            return HttpResponseRedirect(reverse('message'))
+        else:
+            return render(request, 'admin_draw_from_wallet.html')
+
+@login_required
+def adminWallet(request):
+    user = request.user
+    if user.username!="admin":
+        request.session['title'] = "Restricted Access: admin only"
+        request.session['message'] = "Restricted Access: admin only"
+        return HttpResponseRedirect(reverse('message'))
+
+
+    s = System.objects.all()[0]
+    wallet = s.wallet
+
+    current = getCurrentDatetime()
+    monthBefore = current - timedelta(days=30)
+    transactionHistory = Transaction.objects.filter(isTutoriaOwned=True).filter(date__gte = monthBefore).order_by("-date")
+
+    context={'amount':wallet.amount, 'transactionHistory':transactionHistory}
+    return render(request, 'admin_wallet.html', context)
+
+@login_required
 def addToWallet(request):
     user= request.user
     if not user.profile.isStudent:
@@ -95,7 +139,7 @@ def editProfile(request):
     if not request.POST:
         if user.profile.isTutor:
             
-            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': user.profile.tutor.bio}
+            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': user.profile.tutor.bio, 'hide':user.profile.tutor.isHideProfile}
         else:
             context = {}
         return render(request, 'edit_profile.html', context)
@@ -158,6 +202,16 @@ def editProfile(request):
                     t.save()
                     msg += "Tags has been changed.\n"
                     changeFlag = True
+            
+            # check if hide profile
+            choice = False
+            if 'hide' in request.POST:
+                choice = True
+            if choice != t.isHideProfile:
+                t.isHideProfile = choice
+                t.save()
+                msg += "Visibility of profile option has been changed.\n"
+                changeFlag = True
 
         if not changeFlag:
             msg = "No change has made."
@@ -169,7 +223,8 @@ def editProfile(request):
             course = Course.objects.all()
             university = University.objects.all()
             s_bio = Tutor.objects.filter(profile=user.profile)[0].bio
-            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': s_bio, 'msg':msg}
+            s_hide = Tutor.objects.filter(profile=user.profile)[0].isHideProfile
+            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': s_bio,'hide':s_hide ,'msg':msg}
         else:
             context = {'msg':msg}
 
@@ -209,8 +264,6 @@ def reviewTutor(request, url_token):
 
 @login_required
 def viewWallet(request):
-    if request.user.username =="admin":
-        return HttpResponse("You logged in as admin.")
     
     wallet = request.user.profile.wallet
 
@@ -299,9 +352,6 @@ def bookTutor(request, tutor_id):
     # get tutor with tutor_id
     tutor = get_object_or_404(Tutor, pk=tutor_id)
 
-    # tutor with tutor_id not exist
-    if tutor not in Tutor.objects.exclude(tutor_type__isnull=True):
-        return HttpResponse("This Tutor not available.")
     
     context={}
 
@@ -309,7 +359,7 @@ def bookTutor(request, tutor_id):
     current = getCurrentDatetime()
     week_after = current + timedelta(days=7)
     unavailableTimeObj = Session.objects.filter(tutor=tutor).filter(isBlackedout=True).filter(end_date__gt=current).filter(start_date__lt=week_after)
-    occupiedTimeObj = Session.objects.filter(tutor=tutor).filter(isBlackedout=False).filter(status="booked").filter(end_date__gt=current).filter(start_date__lt=week_after)
+    occupiedTimeObj = Session.objects.filter(tutor=tutor).exclude(status="cancelled").filter(isBlackedout=False).filter(status="booked").filter(end_date__gt=current).filter(start_date__lt=week_after)
     unavailable_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in unavailableTimeObj]
     occupied_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in occupiedTimeObj]
     context['tutor']=tutor
@@ -413,7 +463,8 @@ def searchTutor(request):
                               .exclude(university__isnull=True) \
                               .exclude(bio__isnull=True)\
                               .exclude(profile__user__first_name__isnull=True)\
-                              .exclude(profile__user__last_name__isnull=True)
+                              .exclude(profile__user__last_name__isnull=True) \
+                              .exclude(isHideProfile=True)
 
         if 'tutor_type' in request.GET:
             t = request.GET['tutor_type']
@@ -476,6 +527,9 @@ def signup(request):
     return render(request, 'signup.html', {'form': form})
 
 def notification(request):
+    if request.user.username =="admin":
+        return HttpResponse("You logged in as admin.")
+    
     notif_list = Notification.objects.filter(profile=request.user.profile).order_by('-date')
 
     context={'list':notif_list}
@@ -484,3 +538,6 @@ def notification(request):
 
 def homepage(request):
     return render(request, 'homepage.html')
+
+
+

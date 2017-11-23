@@ -136,14 +136,14 @@ def sendTutorPaymentNotification(s):
 def validateBookingDatetime(date_start, date_end, tutor):
     if date_start < getCurrentDatetime()+timedelta(hours=24):
         return False
-    session_list = Session.objects.filter(tutor=tutor).exclude(end_date__lte = date_start).exclude(start_date__gte=date_end)
+    session_list = Session.objects.filter(tutor=tutor).exclude(status="cancelled").exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
     if len(session_list)>0:
         return False
     else:
         return True
 
 def checkFairBook(date_start, date_end, tutor, student):
-    session_list = Session.objects.filter(tutor=tutor).filter(isBlackedout=False).filter(student=student).filter(start_date__date=date_start.date())
+    session_list = Session.objects.filter(tutor=tutor).filter(isBlackedout=False).filter(student=student).exclude(status="cancelled").filter(start_date__date=date_start.date())
     if len(session_list)>0:
         return False
     else:

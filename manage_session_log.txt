@@ -12,3 +12,9 @@
 [21/Nov/2017 16:00:00] <Session management finished>
 [21/Nov/2017 16:00:00] <Session management begin...>
 [21/Nov/2017 16:00:00] <Session management finished>
+[23/Nov/2017 22:00:00] <Session management begin...>
+[23/Nov/2017 22:00:00]   Ended session: Session 125: eric <-> david, 2017-11-23 15:00 - 2017-11-23 16:00
+[23/Nov/2017 22:00:00]   Sent review invitation to Student 1: eric
+[23/Nov/2017 22:00:00]   Transfered fee to tutor david
+[23/Nov/2017 22:00:00]   Sent payment notification to tutor david
+[23/Nov/2017 22:00:00] <Session management finished>

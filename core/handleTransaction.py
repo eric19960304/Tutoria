@@ -41,8 +41,11 @@ def bookingCredit(session):
         sys_wallet.save()
 
         # record the transaction
-        t = Transaction(profile=student.profile, date=getCurrentDatetime(), amount=user_credit_amount, session=session, isDebit=False,isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee Payment from Student")
+        t = Transaction(profile=student.profile, date=getCurrentDatetime(), amount=user_credit_amount, session=session, isDebit=False,isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee payment")
         t.save()
+
+        st = Transaction(date=getCurrentDatetime(), amount=user_credit_amount,session=session, isDebit=True,isTutoriaOwned=True, isSystemWalletRelated=True, isTutorFeeRelated=True, description="Tutor fee from student")
+        st.save()
         
         return user_credit_amount
     else:
@@ -69,8 +72,11 @@ def bookingRefund(session):
         sys_wallet.save()
 
         # record the transaction
-        t = Transaction(profile=student.profile, date=getCurrentDatetime(), amount=user_debit_amount, session=session, isDebit=True, isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee refund to student")
+        t = Transaction(profile=student.profile, date=getCurrentDatetime(), amount=user_debit_amount, session=session, isDebit=True, isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee refund")
         t.save()
+
+        st = Transaction(date=getCurrentDatetime(), amount=user_debit_amount, session=session, isDebit=False,isTutoriaOwned=True, isSystemWalletRelated=True, isTutorFeeRelated=True, description="Refund to student")
+        st.save()
 
         return user_debit_amount
     else:
@@ -91,9 +97,12 @@ def transferTutorFee(session):
         sys_wallet.credit( tutor_debit_amount )
         sys_wallet.save()
 
-        # record
-        t = Transaction(profile=tutor.profile, date=getCurrentDatetime(), amount=tutor_debit_amount, session=session, isDebit=True, isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee deposit to tutor")
+        # record transaction
+        t = Transaction(profile=tutor.profile, date=getCurrentDatetime(), amount=tutor_debit_amount, session=session, isDebit=True, isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee deposit")
         t.save()
+
+        st = Transaction(date=getCurrentDatetime(), amount=tutor_debit_amount,session=session, isDebit=False,isTutoriaOwned=True, isSystemWalletRelated=True, isTutorFeeRelated=True, description="Tutor fee to tutor")
+        st.save()
 
 
 def studentAddToWallet(profile, amount):
@@ -104,8 +113,9 @@ def studentAddToWallet(profile, amount):
         w.save()
 
         # record transaction
-        t = Transaction(profile=profile,  date=getCurrentDatetime(), amount=amount, session=session, isDebit=True, isTutorFeeRelated=True, isBankRelated=True, description="Top up wallet")
+        t = Transaction(profile=profile,  date=getCurrentDatetime(), amount=amount, isDebit=True,  isBankRelated=True, description="Top up wallet")
         t.save()
+
 
         print("{} : add HKD {} to wallet.".format(profile.student,amount))
     else:
@@ -119,9 +129,24 @@ def tutorDrawFromWallet(profile,amount):
         w.save()
 
         # record transaction
-        t = Transaction(profile=profile,  date=getCurrentDatetime(), amount=amount, session=session, isDebit=False, isTutorFeeRelated=True, isBankRelated=True, description="Withdraw amount from wallet")
+        t = Transaction(profile=profile,  date=getCurrentDatetime(), amount=amount, isDebit=False, isBankRelated=True, description="Withdraw amount from wallet")
         t.save()
 
         print("{} : transfered HKD {} from wallet to bank account.".format(profile.tutor,amount))
+    else:
+        raise TransactionException
+
+def adminDrawFromTutoriaWallet(amount):
+    if amount >0:
+        s = System.objects.all()[0]
+        w = s.wallet
+        w.credit( Decimal(amount) )
+        w.save()
+
+        # record transaction
+        t = Transaction(date=getCurrentDatetime(), amount=amount, isDebit=False,isTutoriaOwned=True, isBankRelated=True, isSystemWalletRelated=True, description="Withdraw amount from wallet")
+        t.save()
+
+        print("Admin : transfered HKD {} from wallet to Tutoria's bank account.".format(amount))
     else:
         raise TransactionException

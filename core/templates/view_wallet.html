@@ -8,7 +8,7 @@
 
     {% if user.profile.isStudent %}
         <a href="{% url 'add_to_wallet' %}" >
-            Top up wallet
+            <b>Top up wallet</b>
         </a>
     {% endif %}
 
@@ -20,7 +20,7 @@
     <br/><br/>
     {% if transactionHistory %}
         Transaction History (30 days):
-        <table>
+        <table id="transaction_record">
 
             <tr>
                 <th>Date</th>
@@ -29,10 +29,13 @@
                 <th>Credit Amount</th>
             </tr>
             {% for each in transactionHistory %}
-                {% if each.isTutorFeeRelated %}
+                {% if each.isTutorFeeRelated%}
                     <tr>
                         <td>{{each.getDate}}</td>
-                        <td>{{each.description}}: tutorial with {{each.session.tutor.profile.getUserFullName}}</td>
+                        <td>
+                            {{each.description}} 
+                            <i>( {{each.session.student.profile.user.username}} &lt;-&gt; {{each.session.tutor.profile.getUserFullName}} )</i>
+                        </td>
                         <td>{% if each.isDebit %} {{each.amount}} {% endif %}</td>
                         <td>{% if not each.isDebit %} {{each.amount}} {% endif %}</td>
                     </tr>
@@ -48,4 +51,30 @@
             
         </table>
     {% endif %}
+    <style>
+        #transaction_record {
+            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 15px;
+        }
+        
+        #transaction_record td, #transaction_record th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        
+        #transaction_record tr:nth-child(even){background-color: #f2f2f2;}
+        
+        #transaction_record tr:hover {background-color: #ddd;}
+        
+        #transaction_record th {
+            padding-top: 9px;
+            padding-bottom: 9px;
+            text-align: left;
+            background-color: rgb(6, 112, 6);
+            color: white;
+        }
+    </style>
+
 {% endblock %}

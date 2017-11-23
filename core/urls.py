@@ -20,7 +20,9 @@ urlpatterns = [
     url(r'^profile/$', views.editProfile, name='edit_profile'),
     url(r'^topup/$', views.addToWallet, name='add_to_wallet'),
     url(r'^withdraw/$', views.drawFromWallet, name='draw_from_wallet'),
+    url(r'^adminwithdraw/$', views.adminDrawFromWallet, name='admin_draw_from_wallet'),
 
+    url(r'^adminwallet/$', views.adminWallet, name='admin_wallet'),
     url(r'^password/$', views.changePassword, name='change_password'),
     url(r'^password_reset/$', auth_views.password_reset, name='password_reset'),
     url(r'^password_reset/done/$', auth_views.password_reset_done, name='password_reset_done'),

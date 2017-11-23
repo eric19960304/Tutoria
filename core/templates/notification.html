@@ -4,21 +4,85 @@
 
 {% block content %}
     {% if list %}
-        {% for each in list %}
-            <div id="msg_{{each.id}}">
-                <p>
-                    Title: {{each.title}} <br/>
-                    Date: {{each.date}}<br/>
-                    Message: <br/>
-                    {% autoescape off %}
-                        {{each.message | linebreaks}}
-                    {% endautoescape %}
-                    
-                </p>
-            </div>
-            <hr/>
-        {% endfor %}
+        All Notification:
+        <form action="{% url 'view_timetable' %}" method="post">
+            {% csrf_token %}
+            {% for each in list %}
+                <div id="msg_{{each.id}}">
+                    <p>
+                        <div id="title_{{each.id}}" class="title_group">
+                            <input type="checkbox" name="message_id" value="{{each.id}}"/>
+                            {% if not each.checked %}
+                                <b>
+                                    <span>Title: {{each.title}}</span> 
+                                    <span class="pull-right">Date: {{each.date}}</span><br/>
+                                </b>
+                            {% else %}
+                                <span>Title: {{each.title}}</span> 
+                                <span class="pull-right">Date: {{each.date}}</span><br/>
+                            {% endif %}
+                        </div>
+                        <div id="content_{{each.id}}" class="content_group">
+                        Message: <br/>
+                        {% autoescape off %}
+                            {{each.message | linebreaks}}
+                        {% endautoescape %}
+                        </div>
+                    </p>
+                </div>
+                
+                <script>
+                    $('#title_{{each.id}}').click(function(){
+                        $('#content_{{each.id}}').slideToggle("slow");
+                    });
+                </script>
+            {% endfor %}
+        <input type="checkbox" id="select_all" onclick="selectAll()"/> Select All 
+        <br/><br/>
+        <input type="submit" value="Delete Message" onclick="return confirmCancelSession()">
+        <hr/>
+    </form>
     {% else %}
         <h2>No message yet.</h2>
-    {% endif %}
+    {% endif %} 
+
+    <script type="text/javascript">
+        function confirmDeleteMessage(){
+            var s = $("input[name=message_id]:checked");
+            return confirm("You selected "+s.length+" message(s), continue to delete?");
+        }
+        function selectAll(){
+            var status = $("#select_all").prop('checked') == true;
+            if(status){
+                $("input[type=checkbox]").each(function(){
+                    $(this).prop('checked', true);
+                })
+            }else{
+                $("input[type=checkbox]").each(function(){
+                    $(this).prop('checked',false);
+                })
+            }
+
+        }
+    </script>
+    <style> 
+    .title_group {
+    padding: 5px;
+    text-align: left;
+    background-color: #cceeee;
+    border: solid 1px #c3c3c3;
+    }
+
+    .content_group{
+    padding: 5px;
+    text-align: left;
+    background-color: #ddeeee;
+    border: solid 1px #c3c3c3;
+    }
+
+    .content_group {
+    padding: 10px;
+    display: none;
+    }
+    </style>
 {% endblock %}

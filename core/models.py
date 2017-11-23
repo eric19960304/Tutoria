@@ -113,6 +113,7 @@ class Tutor(models.Model):
     university = models.ForeignKey(University, blank=True,null=True)
     course = models.ManyToManyField(Course, blank=True)
     bio = models.CharField(max_length=500, blank=True,null=True)
+    isHideProfile = models.BooleanField(default=False)
     def __str__(self):
         return "Tutor "+str(self.id)+": "+self.profile.user.username
     @property
@@ -183,20 +184,23 @@ class Session(models.Model):
         return self.booking_date.astimezone(local_timezone).strftime('%e %b %Y, %H:%M')
 
 class Transaction(models.Model):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE )
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE,blank=True, null=True)
     date = models.DateTimeField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     session = models.ForeignKey(Session, blank=True, null=True)
     isDebit = models.BooleanField()
+    isTutoriaOwned = models.BooleanField(default=False)
     isTutorFeeRelated = models.BooleanField(default=False)
     isSystemWalletRelated = models.BooleanField(default=False)
     isBankRelated = models.BooleanField(default=False)
     description = models.CharField(max_length=50, blank=False,null=True)
     def __str__(self):
-        if self.isTutorFeeRelated:
-            return "Transaction "+str(self.id)+": "+self.profile.user.username+" <-> "+self.session.tutor.profile.user.username+", "+self.description
+        if self.isTutoriaOwned:
+            return "Transaction "+str(self.id)+": "+self.description+" (Tutoria)"
+        elif self.isTutorFeeRelated:
+            return "Transaction "+str(self.id)+": "+self.description+" ("+self.profile.user.username+" <-> "+self.session.tutor.profile.user.username+")"
         else:
-            return "Transaction "+str(self.id)+": "+self.profile.user.username+", "+self.description
+            return "Transaction "+str(self.id)+": "+self.description+" ("+self.profile.user.username+")"
     @property
     def getDate(self):
         local_timezone = timezone(settings.TIME_ZONE)

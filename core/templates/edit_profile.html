@@ -38,13 +38,21 @@
                 {% endif %}
             {% endfor %}
         </select>
-
+        <br/>
+        University:
         <select name="university">
             <option disabled selected value> -Please select- </option>
             {% for u in university %}
                 <option value="{{abbrev}}">{{u.name}}</option>
             {% endfor %}
         </select>
+        <br/>
+        Visibility of profile:
+        {% if hide %}
+            <input type="checkbox" name="hide" value="Yes" checked/>hide profile<br/>
+        {%else%}
+            <input type="checkbox" name="hide" value="Yes"/>hide profile<br/>
+        {% endif %}
 
         
     {% endif %}
