@@ -243,6 +243,8 @@ def changePassword(request):
 def editProfile(request):
     
     user = request.user
+    
+
 
     if user.profile.isTutor:
         s_tag = user.profile.tutor.tag.all()
@@ -254,14 +256,21 @@ def editProfile(request):
     if not request.POST:
         if user.profile.isTutor and user.profile.tutor.getTutorType!="":
             t = user.profile.tutor
-            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': t.bio, 'hide': t.isHideProfile,'isPrivateTutor':t.isPrivateTutor,'s_uni': t.university, 's_hourly_rate': t.hourly_rate}
+            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': t.bio, 'hide': t.isHideProfile,'isPrivateTutor':t.isPrivateTutor,'s_uni': t.university, 's_hourly_rate': t.hourly_rate, 'pic':user.profile.image}
         else:
             context = {}
         return render(request, 'edit_profile.html', context)
     else:
         changeFlag = False
         msg = ""
-        
+
+        if 'pic' in request.FILES and request.FILES['pic']!=user.profile.image:
+            p = Profile.objects.filter(user=user)[0]
+            p.image.delete(False)
+            p.image = request.FILES['pic']
+            p.save()
+            changeFlag = True
+            return render(request, 'avatar_confirm.html')
         if 'first_name' in request.POST and request.POST['first_name']!=user.first_name:
             user.first_name =  request.POST['first_name']
             user.save()
@@ -373,9 +382,9 @@ def editProfile(request):
             university = University.objects.all()
             s_bio = Tutor.objects.filter(profile=user.profile)[0].bio
             s_hide = Tutor.objects.filter(profile=user.profile)[0].isHideProfile
-            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': s_bio,'hide':s_hide ,'msg':msg,'isPrivateTutor': t.isPrivateTutor ,'s_uni': t.university, 's_hourly_rate': t.hourly_rate}
+            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': s_bio,'hide':s_hide ,'msg':msg,'isPrivateTutor': t.isPrivateTutor ,'s_uni': t.university, 's_hourly_rate': t.hourly_rate, 'pic':user.profile.image}
         else:
-            context = {'msg':msg}
+            context = {'msg':msg,'pic':user.profile.image}
 
         return render(request, 'edit_profile.html', context)
       
@@ -694,9 +703,10 @@ def viewTutorProfile(request, tutor_id):
         context['noAverage']=True
     return render(request, 'view_tutor_profile.html', context)
 
+
 def signup(request):
     if request.method == 'POST':
-        form = SignUpForm(request.POST)
+        form = SignUpForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
             user.save()
@@ -704,6 +714,12 @@ def signup(request):
             phone_no = form.cleaned_data.get('phone_no')
 
             createUser(user, user_type, phone_no)
+
+            if 'image' in request.FILES:
+                p = Profile.objects.filter(user=user)[0]
+                p.image.delete(False)
+                p.image = request.FILES['image']
+                p.save()
 
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=user.username, password=raw_password)

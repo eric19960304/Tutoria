@@ -3,9 +3,18 @@
 
 {% block content %}
     <h2>My profile</h2><br/>
-<form action="{% url 'edit_profile' %}" method="POST" id="profile_form">
+
+     {% if user.profile.image %}  
+        <img src="{{ user.profile.image.url }}" height="200" width="200"/>
+     {% else %}
+        <img src="/media/profile_image/default_avatar.gif" height="200" width="200"/>
+     {% endif %}
+
+<form action="{% url 'edit_profile' %}" method="POST" id="profile_form" enctype="multipart/form-data">
     {% csrf_token %}
 
+    <input type="file" name="pic">
+    <br />
     First name: <input name="first_name" type="text" maxlength="30" value="{{user.first_name}}">
     <br/>
     Last name: <input name="last_name" type="text" maxlength="30" value="{{user.last_name}}">

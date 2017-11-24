@@ -18,6 +18,7 @@ urlpatterns = [
     url(r'^tutorprofile/(?P<tutor_id>[0-9]+)$', views.viewTutorProfile, name='view_tutor_profile'),
     url(r'^reviewtutor/(?P<url_token>\w+)/$', views.reviewTutor, name="review_tutor"),
     url(r'^profile/$', views.editProfile, name='edit_profile'),
+    url(r'^avatar_confirm/$', views.editProfile, name='avatar_confirm'),
     url(r'^topup/$', views.addToWallet, name='add_to_wallet'),
     url(r'^withdraw/$', views.drawFromWallet, name='draw_from_wallet'),
     url(r'^adminwithdraw/$', views.adminDrawFromWallet, name='admin_draw_from_wallet'),

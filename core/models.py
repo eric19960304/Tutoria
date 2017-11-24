@@ -52,6 +52,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=20)
     user_type =  models.ForeignKey(UserType)
+    image = models.ImageField(upload_to='profile_image',blank=True)
     wallet = models.OneToOneField(Wallet)
     def __str__(self):
         return "Profile "+str(self.id)+": "+self.user.username+"'s profile"
