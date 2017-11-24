@@ -136,6 +136,8 @@ def sendTutorPaymentNotification(s):
 def validateBookingDatetime(date_start, date_end, tutor):
     if date_start < getCurrentDatetime()+timedelta(hours=24):
         return False
+    if date_start > getCurrentDatetime()+timedelta(days=7):
+        return False
     session_list = Session.objects.filter(tutor=tutor).exclude(status="cancelled").exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
     if len(session_list)>0:
         return False
@@ -152,7 +154,7 @@ def checkFairBook(date_start, date_end, tutor, student):
 def checkNext7day(tutor):
     hasTimeslot = False
     date = getNextHalfHour(datetime.now())
-    end_date = date + timedelta(days=6)
+    end_date = date + timedelta(days=7)
     end_date = end_date.replace(hour=18,minute=30,second=00)
     while date <= end_date:
         if date > date.replace(hour=18,minute=30,second=00):
@@ -187,3 +189,19 @@ def reviewInvitation(s):
     s_n.save()
 
 
+def generateTimetable(date_start, date_end, profile):
+    result = ""
+    if profile.isTutor:
+        session_list = Session.objects.filter(tutor=profile.tutor).filter(isBlackedout=False).exclude(status="cancelled").exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
+        if len(session_list)>0:
+            result+="S "  # tutorial session appointment
+        session_list = Session.objects.filter(tutor=profile.tutor).filter(isBlackedout=True).exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
+        if len(session_list)>0:
+            result+="B " # blacked-out timeslot
+    
+    if profile.isStudent:
+        session_list = Session.objects.filter(student=profile.student).filter(isBlackedout=False).exclude(status="cancelled").exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
+        if len(session_list)>0:
+            result+="T " # tutorial session booked
+    
+    return result

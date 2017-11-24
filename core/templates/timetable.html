@@ -25,6 +25,38 @@
         }
     </script>
     <h2>My Timetable</h2><br/>
+
+    <table class="timetable">
+        {% for row in row_list %}
+            <tr>
+                {% for cell in row %}
+                        <td>{{cell}}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+
+    {% if user.profile.isTutor %}
+    <br/>
+    <table class="timetable">
+            {% for row in row_list2 %}
+                <tr>
+                    {% for cell in row %}
+                            <td>{{cell}}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+    {% if user.profile.isStudent and not user.profile.isTutor %}
+        (T = Tutorial Session Booked)
+    {% elif not user.profile.isStudent and user.profile.isTutor%}
+        (S = Tutoria appointment, B = Blacked-out timeslot)
+    {% else %}
+        (T = Tutorial Session Booked, S = Tutoria appointment, B = Blacked-out timeslot)
+    {% endif %}
+    <br/>
     {% if user.profile.isStudent %}
 
         {% if not student_session_list %}
@@ -90,6 +122,29 @@
         .checkbox_group{
             width: 16px;
             height: 16px;
+        }
+        .timetable {
+            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 15px;
+        }
+        
+        .timetable td, .timetable th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        
+        .timetable tr:nth-child(even){background-color: #f2f2f2;}
+        
+        .timetable tr:hover {background-color: #ddd;}
+        
+        .timetable th {
+            padding-top: 9px;
+            padding-bottom: 9px;
+            text-align: left;
+            background-color: rgb(6, 112, 6);
+            color: white;
         }
     </style>
 {% endblock %}

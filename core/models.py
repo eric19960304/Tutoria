@@ -135,7 +135,10 @@ class Tutor(models.Model):
         return "%s"%(total)
     @property
     def getTutorType(self):
-        return self.tutor_type.tutor_type
+        try:
+            return self.tutor_type.tutor_type
+        except:
+            return ""
     @property
     def isPrivateTutor(self):
         return self.tutor_type.tutor_type=="private"

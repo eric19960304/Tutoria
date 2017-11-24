@@ -29,22 +29,26 @@
 
 <h2>{{tutor.profile.getUserFullName}}</h2>
 Tutor type: {{tutor.getTutorType}} <br/>
-{% if unavailable_time %} 
-    Unavailable timeslot: <br/>
-    <ul>
-        {% for each in unavailable_time %}
-            <li>{{ each }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-{% if occupied_time %}
-Occupied timeslot: <br/>
-<ul>
-    {% for each in occupied_time %}
-        <li>{{ each }}</li>
+Hourly rate: {{tutor.hourly_rate}}<br/><br/>
+
+Tutor's Timetable:
+<table id="timetable">
+    {% for row in row_list %}
+        <tr>
+            {% for cell in row %}
+                {% if cell is False %}
+                    <td bgcolor="#FF0000">X</td>
+                {% elif cell is True %}
+                    <td bgcolor="#00FF00">✓</td>
+                {% else %}
+                    <td style="width: 12px">{{cell}}</td>
+                {% endif %}
+            {% endfor %}
+        </tr>
     {% endfor %}
-</ul>
-{% endif %}
+</table>
+
+
 <form action="{% url 'book_tutor' tutor.id %}" method="POST">
     {% csrf_token %} select date:
     <input id="booking_date" type="date" name="booking_date" /><br/>
@@ -101,20 +105,80 @@ Occupied timeslot: <br/>
     
 </form>
 
+
+{% if unavailable_time %} 
+    All Unavailable timeslot: <br/>
+    <ul>
+        {% for each in unavailable_time %}
+            <li>{{ each }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% if occupied_time %}
+    All Occupied timeslot: <br/>
+    <ul>
+        {% for each in occupied_time %}
+            <li>{{ each }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+
 <script>
     var tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
+    var today = new Date();
+    var nextweek = new Date(today.getFullYear(), today.getMonth(), today.getDate()+7);
     var dd = tomorrow.getDate();
     var mm = tomorrow.getMonth()+1; //January is 0!
     var yyyy = tomorrow.getFullYear();
     if(dd<10){
-            dd='0'+dd
-        } 
-        if(mm<10){
-            mm='0'+mm
-        } 
+        dd='0'+dd
+    } 
+    if(mm<10){
+        mm='0'+mm
+    } 
     tomorrow = yyyy+'-'+mm+'-'+dd;
+
+    var dd = nextweek.getDate();
+    var mm = nextweek.getMonth()+1; //January is 0!
+    var yyyy = nextweek.getFullYear();
+    if(dd<10){
+        dd='0'+dd
+    } 
+    if(mm<10){
+        mm='0'+mm
+    } 
+    nextweek = yyyy+'-'+mm+'-'+dd;
+
     document.getElementById("booking_date").setAttribute("min", tomorrow);
+    document.getElementById("booking_date").setAttribute("max", nextweek);
 </script>
+
+<style>
+    #timetable {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 15px;
+    }
+    
+    #timetable td, #timetable th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+    
+    #timetable tr:nth-child(even){background-color: #f2f2f2;}
+    
+    #timetable tr:hover {background-color: #ddd;}
+    
+    #timetable th {
+        padding-top: 9px;
+        padding-bottom: 9px;
+        text-align: left;
+        background-color: rgb(6, 112, 6);
+        color: white;
+    }
+</style>
 
 {% endblock %}

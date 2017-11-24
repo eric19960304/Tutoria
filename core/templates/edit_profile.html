@@ -12,8 +12,28 @@
     <br/>
     Email: <input name="email" type="text" maxlength="254" value="{{user.email}}">
     <br/>
-    {% if user.profile.isTutor %}
+    {% if not user.profile.tutor.getTutorType|length > 0 %}
+        Tutor type: 
+        <select name="tutor_type">
+            <option disabled selected value> -Please select- </option>
+            <option value="private" >Private tutor</option>
+            <option value="contracted" >Contracted tutor</option>
+        </select>
+    {% elif user.profile.isTutor %}
         <br/>
+        Tutor type:  
+        <select name="tutor_type">
+            {% if user.profile.tutor.isPrivateTutor %}
+                <option value="private" selected>Private tutor</option>
+                <option value="contracted" >Contracted tutor</option>
+            {% else %}
+                <option value="private" >Private tutor</option>
+                <option value="contracted" selected>Contracted tutor</option>
+            {% endif %}
+        </select> <br/>
+        {% if user.profile.tutor.isPrivateTutor %}
+            Hourly rate: <input type="number" step="0.01" name="hourly_rate" value="{{user.profile.tutor.hourly_rate}}"> <br/>
+        {% endif %}
         Edit Bio: <textarea rows="3" cols="50" name="bio" form="profile_form" maxlength="500">{{s_bio}}</textarea><br/>
 
         Courses:
@@ -42,7 +62,7 @@
         <select name="university">
             <option disabled selected value> -Please select- </option>
             {% for u in university %}
-                <option value="{{abbrev}}">{{u.name}}</option>
+                <option value="{{u.abbrev}}">{{u.name}}</option>
             {% endfor %}
         </select>
         <br/>

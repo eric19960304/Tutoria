@@ -173,6 +173,9 @@ def changePassword(request):
 def editProfile(request):
     
     user = request.user
+
+    
+
     if user.profile.isTutor:
         s_tag = user.profile.tutor.tag.all()
         s_course = user.profile.tutor.course.all()
@@ -190,7 +193,6 @@ def editProfile(request):
     else:
         changeFlag = False
         msg = ""
-
         
         if 'first_name' in request.POST and request.POST['first_name']!=user.first_name:
             user.first_name =  request.POST['first_name']
@@ -208,9 +210,25 @@ def editProfile(request):
             changeFlag = True
             msg += "Email has been changed.\n"
         
-
-        if user.profile.isTutor:
+        if user.profile.tutor.getTutorType=="":
             t = Tutor.objects.filter(profile=user.profile)[0]
+            if 'tutor_type' in request.POST:
+                tutortype = TutorType.objects.filter(tutor_type=request.POST['tutor_type'])[0]
+                t.tutor_type = tutortype
+                t.save()
+                msg += "Tutor type has been changed.\n"
+                changeFlag = True
+            
+
+        elif user.profile.isTutor:
+            t = Tutor.objects.filter(profile=user.profile)[0]
+            if 'tutor_type' in request.POST and request.POST['tutor_type']!=t.getTutorType:
+                tutortype = TutorType.objects.filter(tutor_type=request.POST['tutor_type'])[0]
+                t.tutor_type = tutortype
+                t.save()
+                msg += "Tutor type has been changed.\n"
+                changeFlag = True
+            
             if 'bio' in request.POST and request.POST['bio']!=user.profile.tutor.bio:
                 t.bio = request.POST['bio']
                 t.save()
@@ -218,10 +236,17 @@ def editProfile(request):
                 changeFlag = True
 
             if 'university' in request.POST and request.POST['university']!=user.profile.tutor.university:
-                u = University.objects.filter(abbrev=request.POST['university'])
+                u = University.objects.filter(abbrev=request.POST['university'])[0]
                 t.university = u
                 t.save()
                 msg += "University has been changed.\n"
+                changeFlag = True
+            
+            if 'hourly_rate' in request.POST and request.POST['hourly_rate']!=user.profile.tutor.university:
+                m = Decimal(request.POST['hourly_rate'])
+                t.hourly_rate = m
+                t.save()
+                msg += "Hourly rate has been changed.\n"
                 changeFlag = True
                 
             if 'course' in request.POST:
@@ -322,6 +347,58 @@ def viewTimetable(request):
     context={}
     msg = ""
 
+    # time table generation
+    # 8:30 - 18:30
+    d=['','8:30']
+    for x in range (9,19):
+        d.append("{}:00".format(x))
+        d.append("{}:30".format(x))
+    row_list=[]
+    row_list.append(d)
+    current = getCurrentDatetime()
+    current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+    
+    for x in range (0,7):
+        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+        temp = [current.date().strftime('%m-%d')]
+        temp.append(generateTimetable(current, current+timedelta(minutes=30), request.user.profile))
+        for y in range (0,20):
+            current = current + timedelta(minutes=30)
+            temp.append(generateTimetable(current, current+timedelta(minutes=30), request.user.profile))
+        row_list.append(temp)
+        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+        current = current + timedelta(days=1)
+
+    context['row_list']=zip(*row_list)
+
+    if request.user.profile.isTutor:
+        # second timetable generation
+        d=['','8:30']
+        for x in range (9,19):
+            d.append("{}:00".format(x))
+            d.append("{}:30".format(x))
+        row_list=[]
+        row_list.append(d)
+        current = getCurrentDatetime() +timedelta(days=7)
+        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+        
+        for x in range (0,7):
+            current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+            temp = [current.date().strftime('%m-%d')]
+            temp.append(generateTimetable(current, current+timedelta(minutes=30), request.user.profile))
+            for y in range (0,20):
+                current = current + timedelta(minutes=30)
+                temp.append(generateTimetable(current, current+timedelta(minutes=30), request.user.profile))
+            row_list.append(temp)
+            current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+            current = current + timedelta(days=1)
+
+        context['row_list2']=zip(*row_list)
+        # end of second timetable generation
+        
+
+    
+
     if request.POST:
         if request.POST['form_type']=="cancel": # cancel session
             IDs = request.POST.getlist('session_id')
@@ -366,19 +443,27 @@ def viewTimetable(request):
                     else:
                         context['msg']="Timeslot you selected is invalid.\n"
     
+    
+
     user_profile = request.user.profile
     context['profile']=user_profile
 
+    current = getCurrentDatetime() 
+    nextweek = current + timedelta(days=7)
+    next2week = current + timedelta(days=14)
+
     if user_profile.isStudent :
-        s = Session.objects.filter(student=user_profile.student).filter(isBlackedout=False).exclude(status="ended").exclude(status="cancelled").order_by('-booking_date')
+        s = Session.objects.filter(student=user_profile.student).filter(isBlackedout=False).exclude(status="ended").exclude(status="cancelled").filter(end_date__lte=nextweek).order_by('-booking_date')
         context['student_session_list'] = s
     if user_profile.isTutor:
-        s = Session.objects.filter(tutor=user_profile.tutor).filter(isBlackedout=False).exclude(status="ended").exclude(status="cancelled").order_by('-booking_date')
+        s = Session.objects.filter(tutor=user_profile.tutor).filter(isBlackedout=False).exclude(status="ended").exclude(status="cancelled").filter(end_date__lte=next2week).order_by('-booking_date')
         context['tutor_session_list'] = s
         current = getCurrentDatetime()
-        b = Session.objects.filter(tutor=user_profile.tutor).filter(isBlackedout=True).filter(end_date__gte=current).order_by('-start_date')
+        b = Session.objects.filter(tutor=user_profile.tutor).filter(isBlackedout=True).filter(end_date__gte=current).filter(end_date__lte=next2week).order_by('-start_date')
         unavailable_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in b]
         context['blackedOutTimeslots'] = unavailable_time
+
+    
 
     return render(request, 'timetable.html', context)
 
@@ -478,6 +563,31 @@ def bookTutor(request, tutor_id):
         occupiedTimeObj = Session.objects.filter(tutor=tutor).filter(isBlackedout=False).filter(status="booked").filter(end_date__gt=current).filter(start_date__lt=week_after)
         occupied_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in occupiedTimeObj]
         context['occupied_time']=occupied_time
+
+    # time table generation
+    # 8:30 - 18:30
+    d=['','8:30']
+    for x in range (9,19):
+        d.append("{}:00".format(x))
+        d.append("{}:30".format(x))
+    row_list=[]
+    row_list.append(d)
+    current = getCurrentDatetime() + timedelta(days=1)
+    current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+    
+    for x in range (0,7):
+        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+        temp = [current.date().strftime('%m-%d')]
+        temp.append(validateBookingDatetime(current, current+timedelta(minutes=30), tutor))
+        for y in range (0,20):
+            current = current + timedelta(minutes=30)
+            temp.append(validateBookingDatetime(current, current+timedelta(minutes=30), tutor))
+        row_list.append(temp)
+        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+        current = current + timedelta(days=1)
+
+    context['row_list']=zip(*row_list)
+    # end of time table generation
 
     return render(request, 'book_tutor.html', context)
 
