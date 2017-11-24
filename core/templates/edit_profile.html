@@ -20,10 +20,9 @@
             <option value="contracted" >Contracted tutor</option>
         </select>
     {% elif user.profile.isTutor %}
-        <br/>
         Tutor type:  
         <select name="tutor_type">
-            {% if user.profile.tutor.isPrivateTutor %}
+            {% if isPrivateTutor %}
                 <option value="private" selected>Private tutor</option>
                 <option value="contracted" >Contracted tutor</option>
             {% else %}
@@ -31,8 +30,8 @@
                 <option value="contracted" selected>Contracted tutor</option>
             {% endif %}
         </select> <br/>
-        {% if user.profile.tutor.isPrivateTutor %}
-            Hourly rate: <input type="number" step="0.01" name="hourly_rate" value="{{user.profile.tutor.hourly_rate}}"> <br/>
+        {% if isPrivateTutor %}
+            Hourly rate: <input type="number" step="0.01" name="hourly_rate" value="{{s_hourly_rate}}"> <br/>
         {% endif %}
         Edit Bio: <textarea rows="3" cols="50" name="bio" form="profile_form" maxlength="500">{{s_bio}}</textarea><br/>
 
@@ -62,7 +61,11 @@
         <select name="university">
             <option disabled selected value> -Please select- </option>
             {% for u in university %}
-                <option value="{{u.abbrev}}">{{u.name}}</option>
+                {% ifequal s_uni_abbrev u.abbrev %}
+                    <option value="{{u.abbrev}}" selected>{{u.name}}</option>
+                {% else %}
+                    <option value="{{u.abbrev}}">{{u.name}}</option>
+                {% endifequal %}
             {% endfor %}
         </select>
         <br/>

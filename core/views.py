@@ -174,8 +174,6 @@ def editProfile(request):
     
     user = request.user
 
-    
-
     if user.profile.isTutor:
         s_tag = user.profile.tutor.tag.all()
         s_course = user.profile.tutor.course.all()
@@ -185,8 +183,8 @@ def editProfile(request):
     
     if not request.POST:
         if user.profile.isTutor:
-            
-            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': user.profile.tutor.bio, 'hide':user.profile.tutor.isHideProfile}
+            t = user.profile.tutor
+            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': t.bio, 'hide': t.isHideProfile,'isPrivateTutor':t.isPrivateTutor,'s_uni_abbrev': t.university.abbrev, 's_hourly_rate': t.hourly_rate}
         else:
             context = {}
         return render(request, 'edit_profile.html', context)
@@ -210,7 +208,7 @@ def editProfile(request):
             changeFlag = True
             msg += "Email has been changed.\n"
         
-        if user.profile.tutor.getTutorType=="":
+        if user.profile.tutor.getTutorType=="": #tutor type not selected
             t = Tutor.objects.filter(profile=user.profile)[0]
             if 'tutor_type' in request.POST:
                 tutortype = TutorType.objects.filter(tutor_type=request.POST['tutor_type'])[0]
@@ -222,12 +220,6 @@ def editProfile(request):
 
         elif user.profile.isTutor:
             t = Tutor.objects.filter(profile=user.profile)[0]
-            if 'tutor_type' in request.POST and request.POST['tutor_type']!=t.getTutorType:
-                tutortype = TutorType.objects.filter(tutor_type=request.POST['tutor_type'])[0]
-                t.tutor_type = tutortype
-                t.save()
-                msg += "Tutor type has been changed.\n"
-                changeFlag = True
             
             if 'bio' in request.POST and request.POST['bio']!=user.profile.tutor.bio:
                 t.bio = request.POST['bio']
@@ -235,18 +227,26 @@ def editProfile(request):
                 msg += "Bio has been changed.\n"
                 changeFlag = True
 
-            if 'university' in request.POST and request.POST['university']!=user.profile.tutor.university:
+            if 'university' in request.POST and request.POST['university']!=user.profile.tutor.university.abbrev:
                 u = University.objects.filter(abbrev=request.POST['university'])[0]
                 t.university = u
                 t.save()
                 msg += "University has been changed.\n"
                 changeFlag = True
             
-            if 'hourly_rate' in request.POST and request.POST['hourly_rate']!=user.profile.tutor.university:
-                m = Decimal(request.POST['hourly_rate'])
-                t.hourly_rate = m
+            if 'hourly_rate' in request.POST and request.POST['hourly_rate']!=user.profile.tutor.hourly_rate:
+                t.hourly_rate = Decimal(request.POST['hourly_rate'])
                 t.save()
                 msg += "Hourly rate has been changed.\n"
+                changeFlag = True
+
+            if 'tutor_type' in request.POST and request.POST['tutor_type']!=t.getTutorType:
+                tutortype = TutorType.objects.filter(tutor_type=request.POST['tutor_type'])[0]
+                t.tutor_type = tutortype
+                if request.POST['tutor_type']=="contracted":
+                    t.hourly_rate = Decimal(0)
+                t.save()
+                msg += "Tutor type has been changed.\n"
                 changeFlag = True
                 
             if 'course' in request.POST:
@@ -293,7 +293,7 @@ def editProfile(request):
             university = University.objects.all()
             s_bio = Tutor.objects.filter(profile=user.profile)[0].bio
             s_hide = Tutor.objects.filter(profile=user.profile)[0].isHideProfile
-            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': s_bio,'hide':s_hide ,'msg':msg}
+            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': s_bio,'hide':s_hide ,'msg':msg,'isPrivateTutor': t.isPrivateTutor ,'s_uni_abbrev': t.university.abbrev, 's_hourly_rate': t.hourly_rate}
         else:
             context = {'msg':msg}
 
