@@ -45,29 +45,6 @@
             Hourly rate: <input type="number" step="10" name="hourly_rate" value="{{s_hourly_rate}}"> <br/>
         {% endif %}
         Edit Bio: <textarea rows="3" cols="50" name="bio" form="profile_form" maxlength="500">{{s_bio}}</textarea><br/>
-
-        Courses:
-        <select name="course" multiple size="4">
-            {% for c in course %}
-                {% if c in s_course %}
-                    <option value="{{c.code}}" selected>{{c.code}} {{c.name}}</option>
-                {% else %}
-                    <option value="{{c.code}}">{{c.code}} {{c.name}}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
-
-        Tags:
-        <select name="tag" multiple  size="4">
-            {% for t in tag %}
-                {% if t in s_tag %}
-                    <option value="{{t.name}}" selected>{{t.name}}</option>
-                {% else %}
-                    <option value="{{t.name}}">{{t.name}}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
-        <br/>
         University:
         <select name="university">
             <option disabled selected value> -Please select- </option>
@@ -78,7 +55,30 @@
                     <option value="{{u.abbrev}}">{{u.name}}</option>
                 {% endifequal %}
             {% endfor %}
+        </select><br/>
+        {% if course %}
+        Courses:
+        <select name="course" multiple size="4">
+            {% for c in course %}
+                {% if c in s_course %}
+                    <option value="{{c.code}}" selected>{{c.code}} {{c.name}}</option>
+                {% else %}
+                    <option value="{{c.code}}">{{c.code}} {{c.name}}</option>
+                {% endif %}
+            {% endfor %}
+        </select><br/>
+        {% endif %}
+        Tags:
+        <select name="tag" multiple  size="4">
+            {% for t in tag %}
+                {% if t in s_tag %}
+                    <option value="{{t.name}}" selected>{{t.name}}</option>
+                {% else %}
+                    <option value="{{t.name}}">{{t.name}}</option>
+                {% endif %}
+            {% endfor %}
         </select>
+        
         <br/>
         Visibility of profile:
         {% if hide %}

@@ -250,7 +250,8 @@ def editProfile(request):
         s_tag = user.profile.tutor.tag.all()
         s_course = user.profile.tutor.course.all()
         tag = Tag.objects.all()
-        course = Course.objects.all()
+        if user.profile.tutor.university!=None:
+            course = Course.objects.filter(university=user.profile.tutor.university)
         university = University.objects.all()
     
     if not request.POST:
@@ -315,6 +316,8 @@ def editProfile(request):
                 if 'university' in request.POST and ( t.university==None or request.POST['university']!=t.university.abbrev):
                     u = University.objects.filter(abbrev=request.POST['university'])[0]
                     t.university = u
+                    # clear all courses
+                    t.course.clear()
                     t.save()
                     msg += "University has been changed.\n"
                     changeFlag = True
