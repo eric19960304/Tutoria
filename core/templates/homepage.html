@@ -3,9 +3,16 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-  <h1>Home</h1>
+    <h1>Home</h1>
 
-  <h2>Welcome	{{user.profile.getUserFullName}}!</h2>
-  <p>Tutoria, the best tutor brokering platform EVER.</p>
+    <h2>Welcome	{{user.profile.getUserFullName}}!</h2>
+    <p>Tutoria, the best tutor brokering platform EVER.</p>
+    {% if user.profile.isTutor %}
+        {% ifnotequal user.profile.tutor.profileCompleteness "100" %}
+            Your profile is not completed.<br/>
+            You will only be shown at searching result when you has completed your profile. <br/>
+            Current profile progress: {{user.profile.tutor.profileCompleteness}}%
+        {% endifnotequal %}
+    {% endif %}
 
 {% endblock %}

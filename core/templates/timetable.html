@@ -56,11 +56,24 @@
     {% else %}
         (T = Tutorial Session Booked, S = Tutoria appointment, B = Blacked-out timeslot)
     {% endif %}
-    <br/>
+    <br/><br/>
+    Black out timeslot:
+    <form action="{% url 'view_timetable' %}" method="post">
+        {% csrf_token %}
+        <div id="timeslot_picker_group">
+            <input type="hidden" name="form_type" value="blackout"/>
+            
+            From: <input type="datetime-local" name="blackOutStartDatetime"><br/>
+            To  : <input type="datetime-local" name="blackOutEndDatetime"><br/>
+        </div>
+        <br/>
+        <input type="submit" value="Add blacked-out timeslot" />
+    </form>
+    <br/><br/>
     {% if user.profile.isStudent %}
 
         {% if not student_session_list %}
-            <p>You don't have any session yet.</p>
+            <p>You don't have any tutorial session yet.</p>
         {% else %}
             All Booked Sessions:<br/>
             <form action="{% url 'view_timetable' %}" method="post">
@@ -82,7 +95,7 @@
     {% if user.profile.isTutor %}
 
         {% if not tutor_session_list %}
-            <p>You don't have any session yet.</p>
+            <p>You don't have any appointment yet.</p>
         {%else%}
             All Appointed Sessions:<br/>
             {% for s in tutor_session_list %}
@@ -100,21 +113,9 @@
                 {{ each }} <br/>
             {% endfor %}
         {% endif %}
-        <br/><br/>
-        Black out timeslot:
-        <form action="{% url 'view_timetable' %}" method="post">
-            {% csrf_token %}
-            <div id="timeslot_picker_group">
-                <input type="hidden" name="form_type" value="blackout"/>
-                
-                From: <input type="datetime-local" name="blackOutStartDatetime"><br/>
-                To  : <input type="datetime-local" name="blackOutEndDatetime"><br/>
-            </div>
-            <br/>
-            <input type="submit" value="Add blacked-out timeslot" />
-        </form>
+        <br/>
     {% endif %}
-
+    <br/>
     {% if msg %}
         <div id="msg"><b style="color:red;">{{msg | linebreaks }}</b></div>
     {% endif %}

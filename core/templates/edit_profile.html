@@ -12,7 +12,7 @@
     <br/>
     Email: <input name="email" type="text" maxlength="254" value="{{user.email}}">
     <br/>
-    {% if not user.profile.tutor.getTutorType|length > 0 %}
+    {% if user.profile.isTutor and not user.profile.tutor.getTutorType|length > 0 %}
         Tutor type: 
         <select name="tutor_type">
             <option disabled selected value> -Please select- </option>
@@ -61,7 +61,7 @@
         <select name="university">
             <option disabled selected value> -Please select- </option>
             {% for u in university %}
-                {% ifequal s_uni_abbrev u.abbrev %}
+                {% ifequal s_uni.abbrev u.abbrev %}
                     <option value="{{u.abbrev}}" selected>{{u.name}}</option>
                 {% else %}
                     <option value="{{u.abbrev}}">{{u.name}}</option>
@@ -75,8 +75,7 @@
         {%else%}
             <input type="checkbox" name="hide" value="Yes"/>hide profile<br/>
         {% endif %}
-
-        
+    {% else %}
     {% endif %}
     <br/>
     <a href="{% url 'change_password' %}">change password</a>

@@ -17,6 +17,76 @@ from decimal import Decimal
 from collections import Counter
 
 @login_required
+def sendStudentMessage(request, student_id):
+    if request.user.username =="admin":
+        request.session['title'] = "Restricted Access"
+        request.session['message'] = "You are logged-in as admin."
+        return HttpResponseRedirect(reverse('message'))
+    
+    if not request.user.profile.isTutor:
+        request.session['title'] = "Restricted Access"
+        request.session['message'] = "Only tutor can send message to tutor."
+        return HttpResponseRedirect(reverse('message'))
+
+    # get tutor with tutor_id
+    student = get_object_or_404(Student, pk=student_id)
+    tutor = request.user.profile.tutor
+
+    context={}
+
+    if not request.POST:
+        context['student']=student
+        return render(request, 'send_student_message.html', context)
+    else:
+        if 'title' in request.POST and 'message' in request.POST and request.POST['title']!="" and request.POST['message']!="":
+            web_domain = "http://127.0.0.1:8000"
+            title = "Message From tutor {}: ".format(tutor.profile.getUserFullName) + request.POST['title']
+            message = request.POST['message']+"<hr/>You can reply to tutor by click the following link:\n" + "<a href=\"{}{}\">Send message to tutor</a>".format(web_domain , reverse('send_tutor_message', args=(tutor.id,)))
+            n = Notification()
+            n = Notification(profile = student.profile, title=title ,message = message, date=getCurrentDatetime())
+            n.save()
+            
+        request.session['title'] = "Success"
+        request.session['message'] = "Message is sent to student"
+        return HttpResponseRedirect(reverse('message'))
+
+@login_required
+def sendTutorMessage(request, tutor_id):
+    if request.user.username =="admin":
+        request.session['title'] = "Restricted Access"
+        request.session['message'] = "You are logged-in as admin."
+        return HttpResponseRedirect(reverse('message'))
+    
+    if not request.user.profile.isStudent:
+        request.session['title'] = "Restricted Access"
+        request.session['message'] = "Only student can send message to tutor."
+        return HttpResponseRedirect(reverse('message'))
+
+    # get tutor with tutor_id
+    tutor = get_object_or_404(Tutor, pk=tutor_id)
+    student = request.user.profile.student
+
+    context={}
+
+    if not request.POST:
+        context['tutor']=tutor
+        return render(request, 'send_tutor_message.html', context)
+    else:
+        if 'title' in request.POST and 'message' in request.POST and request.POST['title']!="" and request.POST['message']!="":
+            web_domain = "http://127.0.0.1:8000"
+            title = "Message From student ({}): ".format(request.user.username) + request.POST['title']
+            message = request.POST['message']+"<hr/>You can reply to student by click the following link:\n" + "<a href=\"{}{}\">Send message to student</a>".format(web_domain , reverse('send_student_message', args=(student.id,)))
+            n = Notification()
+            n = Notification(profile = tutor.profile, title=title ,message = message, date=getCurrentDatetime())
+            n.save()
+            
+        request.session['title'] = "Success"
+        request.session['message'] = "Message is sent to tutor"
+        return HttpResponseRedirect(reverse('message'))
+
+
+
+@login_required
 def adminCoupon(request):
     if request.POST:
         if 'amount' in request.POST and 'expire_date' in request.POST and request.POST['amount']!="" and request.POST['expire_date']!="":
@@ -182,9 +252,9 @@ def editProfile(request):
         university = University.objects.all()
     
     if not request.POST:
-        if user.profile.isTutor:
+        if user.profile.isTutor and user.profile.tutor.getTutorType!="":
             t = user.profile.tutor
-            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': t.bio, 'hide': t.isHideProfile,'isPrivateTutor':t.isPrivateTutor,'s_uni_abbrev': t.university.abbrev, 's_hourly_rate': t.hourly_rate}
+            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': t.bio, 'hide': t.isHideProfile,'isPrivateTutor':t.isPrivateTutor,'s_uni': t.university, 's_hourly_rate': t.hourly_rate}
         else:
             context = {}
         return render(request, 'edit_profile.html', context)
@@ -208,84 +278,88 @@ def editProfile(request):
             changeFlag = True
             msg += "Email has been changed.\n"
         
-        if user.profile.tutor.getTutorType=="": #tutor type not selected
-            t = Tutor.objects.filter(profile=user.profile)[0]
-            if 'tutor_type' in request.POST:
-                tutortype = TutorType.objects.filter(tutor_type=request.POST['tutor_type'])[0]
-                t.tutor_type = tutortype
-                t.save()
-                msg += "Tutor type has been changed.\n"
-                changeFlag = True
-            
-
-        elif user.profile.isTutor:
+        
+        if user.profile.isTutor:
             t = Tutor.objects.filter(profile=user.profile)[0]
             
-            if 'bio' in request.POST and request.POST['bio']!=user.profile.tutor.bio:
-                t.bio = request.POST['bio']
-                t.save()
-                msg += "Bio has been changed.\n"
-                changeFlag = True
+            if t.getTutorType=="": #tutor type not selected
+                t = Tutor.objects.filter(profile=user.profile)[0]
+                if 'tutor_type' in request.POST:
+                    tutortype = TutorType.objects.filter(tutor_type=request.POST['tutor_type'])[0]
+                    t.tutor_type = tutortype
+                    t.save()
+                    msg += "Tutor type has been changed.\n"
+                    changeFlag = True
+            else:
+                if 'bio' in request.POST and request.POST['bio']!=t.bio:
+                    t.bio = request.POST['bio']
+                    t.save()
+                    msg += "Bio has been changed.\n"
+                    changeFlag = True
 
-            if 'university' in request.POST and request.POST['university']!=user.profile.tutor.university.abbrev:
-                u = University.objects.filter(abbrev=request.POST['university'])[0]
-                t.university = u
-                t.save()
-                msg += "University has been changed.\n"
-                changeFlag = True
-            
-            if 'hourly_rate' in request.POST and request.POST['hourly_rate']!=user.profile.tutor.hourly_rate:
-                t.hourly_rate = Decimal(request.POST['hourly_rate'])
-                t.save()
-                msg += "Hourly rate has been changed.\n"
-                changeFlag = True
-
-            if 'tutor_type' in request.POST and request.POST['tutor_type']!=t.getTutorType:
-                tutortype = TutorType.objects.filter(tutor_type=request.POST['tutor_type'])[0]
-                t.tutor_type = tutortype
-                if request.POST['tutor_type']=="contracted":
-                    t.hourly_rate = Decimal(0)
-                t.save()
-                msg += "Tutor type has been changed.\n"
-                changeFlag = True
+                if 'university' in request.POST and ( t.university==None or request.POST['university']!=t.university.abbrev):
+                    u = University.objects.filter(abbrev=request.POST['university'])[0]
+                    t.university = u
+                    t.save()
+                    msg += "University has been changed.\n"
+                    changeFlag = True
                 
-            if 'course' in request.POST:
-                course_list = request.POST.getlist('course')
-                course_code_list = [c.code for c in s_course]
-                if Counter(course_code_list)!=Counter(course_list): # check if 2 lists contain same content
-                    t.course.clear()
-                    for each in course_list:
-                        c = Course.objects.filter(code=each)[0]
-                        t.course.add(c)
+                if 'hourly_rate' in request.POST and Decimal(request.POST['hourly_rate'])!=t.hourly_rate:
+                    t.hourly_rate = Decimal(request.POST['hourly_rate'])
                     t.save()
-                    msg += "Courses has been changed.\n"
+                    msg += "Hourly rate has been changed.\n"
                     changeFlag = True
-            if 'tag' in request.POST:
-                tag_list = request.POST.getlist('tag')
-                tag_name_list = [t.name for t in s_tag]
-                if Counter(tag_name_list)!=Counter(tag_list): # check if 2 lists contain same content
-                    t.tag.clear()
-                    for each in tag_list:
-                        ta = Tag.objects.filter(name=each)[0]
-                        t.tag.add(ta)
+
+                if 'tutor_type' in request.POST and request.POST['tutor_type']!=t.getTutorType:
+                    tutortype = TutorType.objects.filter(tutor_type=request.POST['tutor_type'])[0]
+                    t.tutor_type = tutortype
+                    if request.POST['tutor_type']=="contracted":
+                        t.hourly_rate = Decimal(0)
                     t.save()
-                    msg += "Tags has been changed.\n"
+                    msg += "Tutor type has been changed.\n"
                     changeFlag = True
-            
-            # check if hide profile
-            choice = False
-            if 'hide' in request.POST:
-                choice = True
-            if choice != t.isHideProfile:
-                t.isHideProfile = choice
-                t.save()
-                msg += "Visibility of profile option has been changed.\n"
-                changeFlag = True
+                    
+                if 'course' in request.POST:
+                    course_list = request.POST.getlist('course')
+                    course_code_list = [c.code for c in s_course]
+                    if Counter(course_code_list)!=Counter(course_list): # check if 2 lists contain same content
+                        t.course.clear()
+                        for each in course_list:
+                            c = Course.objects.filter(code=each)[0]
+                            t.course.add(c)
+                        t.save()
+                        msg += "Courses has been changed.\n"
+                        changeFlag = True
+
+                if 'tag' in request.POST:
+                    tag_list = request.POST.getlist('tag')
+                    tag_name_list = [t.name for t in s_tag]
+                    if Counter(tag_name_list)!=Counter(tag_list): # check if 2 lists contain same content
+                        t.tag.clear()
+                        for each in tag_list:
+                            ta = Tag.objects.filter(name=each)[0]
+                            t.tag.add(ta)
+                        t.save()
+                        msg += "Tags has been changed.\n"
+                        changeFlag = True
+                
+                # check if hide profile
+                choice = False
+                if 'hide' in request.POST:
+                    choice = True
+                if choice != t.isHideProfile:
+                    t.isHideProfile = choice
+                    t.save()
+                    msg += "Visibility of profile option has been changed.\n"
+                    changeFlag = True
+            # end of if user.profile.tutor.getTutorType==""
+        # end of user.profile.isTutor
 
         if not changeFlag:
             msg = "No change has made."
 
         if user.profile.isTutor:
+            t = Tutor.objects.filter(profile=user.profile)[0]
             s_tag = Tag.objects.filter(tutor=user.profile.tutor)
             s_course = Course.objects.filter(tutor=user.profile.tutor)
             tag = Tag.objects.all()
@@ -293,7 +367,7 @@ def editProfile(request):
             university = University.objects.all()
             s_bio = Tutor.objects.filter(profile=user.profile)[0].bio
             s_hide = Tutor.objects.filter(profile=user.profile)[0].isHideProfile
-            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': s_bio,'hide':s_hide ,'msg':msg,'isPrivateTutor': t.isPrivateTutor ,'s_uni_abbrev': t.university.abbrev, 's_hourly_rate': t.hourly_rate}
+            context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': s_bio,'hide':s_hide ,'msg':msg,'isPrivateTutor': t.isPrivateTutor ,'s_uni': t.university, 's_hourly_rate': t.hourly_rate}
         else:
             context = {'msg':msg}
 
@@ -447,6 +521,11 @@ def bookTutor(request, tutor_id):
     tutor = get_object_or_404(Tutor, pk=tutor_id)
     student = request.user.profile.student
 
+    if request.user.profile.isTutor and tutor == request.user.profile.tutor:
+        request.session['title'] = "Restricted Access"
+        request.session['message'] = "You cannot book tutorial session with yourself."
+        return HttpResponseRedirect(reverse('message'))
+
     context={}
 
     # get tutor unavaliableTimeslot in next 7 date
@@ -557,12 +636,13 @@ def searchTutor(request):
         context = {'tag': tag, 'course': course, 'university': university }
         return render(request, 'search_tutor.html', context)
     else:
-        tutor_list = Tutor.objects.exclude(tutor_type__isnull=True) \
-                              .exclude(hourly_rate__isnull=True) \
+        tutor_list = Tutor.objects.exclude(tutor_type__isnull=True)\
                               .exclude(university__isnull=True) \
                               .exclude(bio__isnull=True)\
                               .exclude(profile__user__first_name__isnull=True)\
                               .exclude(profile__user__last_name__isnull=True) \
+                              .exclude(course__isnull=True)\
+                              .exclude(tag__isnull=True)\
                               .exclude(isHideProfile=True)
 
         if 'tutor_type' in request.GET:

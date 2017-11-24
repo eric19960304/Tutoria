@@ -57,7 +57,10 @@
             {% endif %}
             <br/><br/>
             <a href="{% url 'book_tutor' tutor.id %}">Book this tutor</a>
-                
+            {% if user.profile.isStudent %}
+                / <a href="{% url 'send_tutor_message' tutor.id %}">Send message to tutor</a>
+            {% endif %}
+
         {% else %}
             <hr/>
             <p>Invalid tutor id</p>

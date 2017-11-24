@@ -118,21 +118,21 @@ class Tutor(models.Model):
         return "Tutor "+str(self.id)+": "+self.profile.user.username
     @property
     def profileCompleteness(self):
-        percent = { 'tutor_type': 25, 'hourly_rate': 25, 'university': 15, 'bio': 15, 'courses': 10, 'tags': 10}
+        percent = { 'tutor_type': 25, 'Name': 25, 'university': 15, 'bio': 15, 'courses': 10, 'tags': 10}
         total = 0
-        if self.tutor_type:
+        if self.tutor_type!=None:
             total += percent.get('tutor_type', 0)
-        if self.hourly_rate:
-            total += percent.get('hourly_rate', 0)
-        if self.university:
+        if self.profile.getUserFullName!="":
+            total += percent.get('Name', 0)
+        if self.university!=None:
             total += percent.get('university', 0)
-        if self.bio:
+        if self.bio!=None:
             total += percent.get('bio', 0)
-        if self.courses:
+        if self.course!=None:
             total += percent.get('courses', 0)
-        if self.tags:
+        if self.tag!=None:
             total += percent.get('tags', 0)
-        return "%s"%(total)
+        return "%d"%(total)
     @property
     def getTutorType(self):
         try:

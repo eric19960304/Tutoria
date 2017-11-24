@@ -23,7 +23,8 @@ urlpatterns = [
     url(r'^adminwithdraw/$', views.adminDrawFromWallet, name='admin_draw_from_wallet'),
     url(r'^admincoupon/$', views.adminCoupon, name='admin_coupon'),
     url(r'^ajax/checknotification/$', views.checkNotification, name='check_notification'),
-
+    url(r'^sendtutormessage/(?P<tutor_id>[0-9]+)$', views.sendTutorMessage, name='send_tutor_message'),
+    url(r'^sendstudentmessage/(?P<student_id>[0-9]+)$', views.sendStudentMessage, name='send_student_message'),
 
     url(r'^adminwallet/$', views.adminWallet, name='admin_wallet'),
     url(r'^password/$', views.changePassword, name='change_password'),

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}{{title}}{% endblock %}
+
+{% block content %}
+<h2>Send Message to {{tutor.profile.getUserFullName}}</h2>
+<form action="{% url 'send_tutor_message' tutor.id %}" method="POST" id="message_form">
+    {% csrf_token %}
+    Title: <input name="title" type="text" maxlength="70"><br/>
+    Message:<br/>
+    <textarea rows="3" cols="50" name="message" form="message_form" maxlength="500"></textarea>
+    <br/>
+    <br/>
+    <input type="submit" value="Submit" />
+</form>
+<br/>
+{% if msg %}
+    <div id="msg"><b style="color:red;">{{msg | linebreaks}}</b></div>
+{% endif %}
+
+
+{% endblock %}
