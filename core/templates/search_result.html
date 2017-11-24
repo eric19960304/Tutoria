@@ -59,6 +59,14 @@
                 {% for tutor in tutor_list %}
                     <div class="tutor" data-hourlyrate="{{tutor.hourly_rate}}" data-averagerating="{% if tutor.hasMoreThanTwoRating %}{{tutor.getAverageRating}}{% else %}0{% endif %}">
                         <hr/>
+             
+                        {% if tutor.profile.image %}  
+                            <img src="{{ tutor.profile.image.url }}" height="100" width="100"/>
+                        {% else %}
+                            <img src="/media/profile_image/default_avatar.gif" height="100" width="100"/>
+                        {% endif %}
+                    
+
                         {{tutor.profile.getUserFullName}} <br/>
                         {{tutor.university.name}}<br/>
                         {% if tutor.isPrivateTutor %}
