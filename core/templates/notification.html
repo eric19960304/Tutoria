@@ -34,17 +34,19 @@
                 <div id="msg_{{each.id}}" class="msg_wrapper">
                         <input type="checkbox" name="message_id" value="{{each.id}}" class="checkbox_group"/>
                         <div class="second_wrapper">
-                            <div id="title_{{each.id}}" class="title_group">
-                                {% if not each.checked %}
-                                    <b>
-                                        <span>Title: {{each.title}}</span> 
-                                        <span class="pull-right">Date: {{each.date}}</span>
-                                    </b>
-                                {% else %}
+
+                            {% if not each.checked %}
+                                <div id="title_{{each.id}}" style="font-weight: bold" class="title_group">
                                     <span>Title: {{each.title}}</span> 
                                     <span class="pull-right">Date: {{each.date}}</span>
-                                {% endif %}
-                            </div>
+                                </div>
+                            {% else %}
+                                <div id="title_{{each.id}}" class="title_group">
+                                    <span>Title: {{each.title}}</span> 
+                                    <span class="pull-right">Date: {{each.date}}</span>
+                                </div>
+                            {% endif %}
+                            
                             <div id="content_{{each.id}}" class="content_group">
                                 Message: <br/>
                                 {% autoescape off %}
@@ -60,6 +62,7 @@
                         $.get("{% url 'check_notification' %}",
                             {id: "{{each.id}}" },
                             function(data, status){
+                                $('#title_{{each.id}}').css("font-weight", "normal");
                             });
                     });
                 </script>

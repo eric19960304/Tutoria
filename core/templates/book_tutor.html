@@ -29,8 +29,10 @@
 
 <h2>{{tutor.profile.getUserFullName}}</h2>
 Tutor type: {{tutor.getTutorType}} <br/>
-Hourly rate: {{tutor.hourly_rate}}<br/><br/>
-
+{% if tutor.isPrivateTutor %}
+    Hourly rate: {{tutor.hourly_rate}}<br/>
+{% endif %}
+<br/>
 Tutor's Timetable:
 <table id="timetable">
     {% for row in row_list %}
