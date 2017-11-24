@@ -133,16 +133,24 @@ def sendTutorPaymentNotification(s):
     t_n = Notification(profile = s.tutor.profile, title="Payment Notification" ,message = tutor_msg, date=now)
     t_n.save()
 
-def validateBookingDatetime(date_start, date_end, tutor):
+def validateBookingDatetime(date_start, date_end, tutor, student):
     if date_start < getCurrentDatetime()+timedelta(hours=24):
         return False
     if date_start > getCurrentDatetime()+timedelta(days=7):
         return False
+    # check conflict with tutor
     session_list = Session.objects.filter(tutor=tutor).exclude(status="cancelled").exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
     if len(session_list)>0:
         return False
-    else:
-        return True
+
+    # check conflict with student him/herself
+    if student!=None:
+        session_list = Session.objects.filter(student=student).exclude(status="cancelled").exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
+        if len(session_list)>0:
+            return False
+    
+    return True
+
 
 def checkFairBook(date_start, date_end, tutor, student):
     session_list = Session.objects.filter(tutor=tutor).filter(isBlackedout=False).filter(student=student).exclude(status="cancelled").filter(start_date__date=date_start.date())
@@ -161,9 +169,9 @@ def checkNext7day(tutor):
             date += timedelta(days=1)
             date = date.replace(hour=8,minute=30,second=00)
         if tutor.isPrivateTutor:
-            hasTimeslot = validateBookingDatetime(toLocalDatetime(date), toLocalDatetime(date+timedelta(hours=1)), tutor)
+            hasTimeslot = validateBookingDatetime(toLocalDatetime(date), toLocalDatetime(date+timedelta(hours=1)), tutor, None)
         else:
-            hasTimeslot = validateBookingDatetime(toLocalDatetime(date), toLocalDatetime(date+timedelta(minutes=30)), tutor)
+            hasTimeslot = validateBookingDatetime(toLocalDatetime(date), toLocalDatetime(date+timedelta(minutes=30)), tutor, None)
         if hasTimeslot:
             return True
 
@@ -189,7 +197,7 @@ def reviewInvitation(s):
     s_n.save()
 
 
-def generateTimetable(date_start, date_end, profile):
+def generateTimetableSymbol(date_start, date_end, profile):
     result = ""
     if profile.isTutor:
         session_list = Session.objects.filter(tutor=profile.tutor).filter(isBlackedout=False).exclude(status="cancelled").exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
@@ -205,3 +213,77 @@ def generateTimetable(date_start, date_end, profile):
             result+="T " # tutorial session booked
     
     return result
+
+def generateBookingTimetable(tutor, student):
+    # time table generation
+    # assume working hour is 8:30 - 18:30
+    d=['','8:30']
+    for x in range (9,19):
+        d.append("{}:00".format(x))
+        d.append("{}:30".format(x))
+    row_list=[]
+    row_list.append(d)
+    current = getCurrentDatetime() + timedelta(days=1)
+    current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+    
+    for x in range (0,7):
+        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+        temp = [current.date().strftime('%m-%d')]
+        temp.append(validateBookingDatetime(current, current+timedelta(minutes=30), tutor, student))
+        for y in range (0,20):
+            current = current + timedelta(minutes=30)
+            temp.append(validateBookingDatetime(current, current+timedelta(minutes=30), tutor, student))
+        row_list.append(temp)
+        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+        current = current + timedelta(days=1)
+
+    return row_list
+
+def generateProfileTimetable1(profile):
+    # first timetable generation
+    # 8:30 - 18:30
+    d=['','8:30']
+    for x in range (9,19):
+        d.append("{}:00".format(x))
+        d.append("{}:30".format(x))
+    row_list=[]
+    row_list.append(d)
+    current = getCurrentDatetime()
+    current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+    
+    for x in range (0,7):
+        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+        temp = [current.date().strftime('%m-%d')]
+        temp.append(generateTimetableSymbol(current, current+timedelta(minutes=30), profile))
+        for y in range (0,20):
+            current = current + timedelta(minutes=30)
+            temp.append(generateTimetableSymbol(current, current+timedelta(minutes=30), profile))
+        row_list.append(temp)
+        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+        current = current + timedelta(days=1)
+    
+    return row_list
+
+def generateProfileTimetable2(profile):
+    # second timetable generation
+    d=['','8:30']
+    for x in range (9,19):
+        d.append("{}:00".format(x))
+        d.append("{}:30".format(x))
+    row_list=[]
+    row_list.append(d)
+    current = getCurrentDatetime() +timedelta(days=7)
+    current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+    
+    for x in range (0,7):
+        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+        temp = [current.date().strftime('%m-%d')]
+        temp.append(generateTimetableSymbol(current, current+timedelta(minutes=30), profile))
+        for y in range (0,20):
+            current = current + timedelta(minutes=30)
+            temp.append(generateTimetableSymbol(current, current+timedelta(minutes=30), profile))
+        row_list.append(temp)
+        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
+        current = current + timedelta(days=1)
+
+    return row_list

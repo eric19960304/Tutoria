@@ -342,62 +342,19 @@ def viewWallet(request):
 @login_required
 def viewTimetable(request):
     if request.user.username =="admin":
-        return HttpResponse("You logged in as admin.")
+        request.session['title'] = "Restricted Access"
+        request.session['message'] = "You are logged-in as admin."
+        return HttpResponseRedirect(reverse('message'))
 
     context={}
     msg = ""
 
-    # time table generation
-    # 8:30 - 18:30
-    d=['','8:30']
-    for x in range (9,19):
-        d.append("{}:00".format(x))
-        d.append("{}:30".format(x))
-    row_list=[]
-    row_list.append(d)
-    current = getCurrentDatetime()
-    current = current.replace(hour=8,minute=30,second=0, microsecond=0)
-    
-    for x in range (0,7):
-        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
-        temp = [current.date().strftime('%m-%d')]
-        temp.append(generateTimetable(current, current+timedelta(minutes=30), request.user.profile))
-        for y in range (0,20):
-            current = current + timedelta(minutes=30)
-            temp.append(generateTimetable(current, current+timedelta(minutes=30), request.user.profile))
-        row_list.append(temp)
-        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
-        current = current + timedelta(days=1)
-
+    row_list = generateProfileTimetable1(request.user.profile)
     context['row_list']=zip(*row_list)
 
     if request.user.profile.isTutor:
-        # second timetable generation
-        d=['','8:30']
-        for x in range (9,19):
-            d.append("{}:00".format(x))
-            d.append("{}:30".format(x))
-        row_list=[]
-        row_list.append(d)
-        current = getCurrentDatetime() +timedelta(days=7)
-        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
-        
-        for x in range (0,7):
-            current = current.replace(hour=8,minute=30,second=0, microsecond=0)
-            temp = [current.date().strftime('%m-%d')]
-            temp.append(generateTimetable(current, current+timedelta(minutes=30), request.user.profile))
-            for y in range (0,20):
-                current = current + timedelta(minutes=30)
-                temp.append(generateTimetable(current, current+timedelta(minutes=30), request.user.profile))
-            row_list.append(temp)
-            current = current.replace(hour=8,minute=30,second=0, microsecond=0)
-            current = current + timedelta(days=1)
-
+        row_list = generateProfileTimetable2(request.user.profile)
         context['row_list2']=zip(*row_list)
-        # end of second timetable generation
-        
-
-    
 
     if request.POST:
         if request.POST['form_type']=="cancel": # cancel session
@@ -428,7 +385,8 @@ def viewTimetable(request):
                         msg += '%.2f'%user_debit_amount + ' HKD has been refunded to your wallet.'
             
             context['msg']=msg
-        else:
+
+        else: # blackout timeslot
             if request.user.profile.isTutor:
                 start_date = request.POST['blackOutStartDatetime']
                 end_date = request.POST['blackOutEndDatetime']
@@ -442,9 +400,17 @@ def viewTimetable(request):
                         context['msg']="Timeslot you selected has been blacked-out.\n"
                     else:
                         context['msg']="Timeslot you selected is invalid.\n"
-    
-    
+        
+        # generate timetable again to update the cancel session or blacked out
+        row_list = generateProfileTimetable1(request.user.profile)
+        context['row_list']=zip(*row_list)
 
+        if request.user.profile.isTutor:
+            row_list = generateProfileTimetable2(request.user.profile)
+            context['row_list2']=zip(*row_list)
+
+        # end of if request.POST:
+    
     user_profile = request.user.profile
     context['profile']=user_profile
 
@@ -453,29 +419,34 @@ def viewTimetable(request):
     next2week = current + timedelta(days=14)
 
     if user_profile.isStudent :
-        s = Session.objects.filter(student=user_profile.student).filter(isBlackedout=False).exclude(status="ended").exclude(status="cancelled").filter(end_date__lte=nextweek).order_by('-booking_date')
+        s = Session.objects.filter(student=user_profile.student).filter(isBlackedout=False).exclude(status="ended").exclude(status="cancelled").filter(end_date__lte=nextweek).order_by('-start_date')
         context['student_session_list'] = s
     if user_profile.isTutor:
-        s = Session.objects.filter(tutor=user_profile.tutor).filter(isBlackedout=False).exclude(status="ended").exclude(status="cancelled").filter(end_date__lte=next2week).order_by('-booking_date')
+        s = Session.objects.filter(tutor=user_profile.tutor).filter(isBlackedout=False).exclude(status="ended").exclude(status="cancelled").filter(end_date__lte=next2week).order_by('-start_date')
         context['tutor_session_list'] = s
         current = getCurrentDatetime()
         b = Session.objects.filter(tutor=user_profile.tutor).filter(isBlackedout=True).filter(end_date__gte=current).filter(end_date__lte=next2week).order_by('-start_date')
         unavailable_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in b]
         context['blackedOutTimeslots'] = unavailable_time
 
-    
-
     return render(request, 'timetable.html', context)
 
 @login_required
 def bookTutor(request, tutor_id):
     if request.user.username =="admin":
-        return HttpResponse("You logged in as admin.")
+        request.session['title'] = "Restricted Access"
+        request.session['message'] = "You are logged-in as admin."
+        return HttpResponseRedirect(reverse('message'))
     
+    if not request.user.profile.isStudent:
+        request.session['title'] = "Restricted Access"
+        request.session['message'] = "Only student can book tutor."
+        return HttpResponseRedirect(reverse('message'))
+
     # get tutor with tutor_id
     tutor = get_object_or_404(Tutor, pk=tutor_id)
+    student = request.user.profile.student
 
-    
     context={}
 
     # get tutor unavaliableTimeslot in next 7 date
@@ -488,6 +459,9 @@ def bookTutor(request, tutor_id):
     context['tutor']=tutor
     context['unavailable_time']=unavailable_time
     context['occupied_time']=occupied_time
+    # generate timetable
+    row_list = generateBookingTimetable(tutor, student)
+    context['row_list']=zip(*row_list)
 
     if tutor.isPrivateTutor:
         amount = tutor.hourly_rate*Decimal(1.05)
@@ -500,7 +474,6 @@ def bookTutor(request, tutor_id):
         context['msg']=""
         use_coupon = False
         coupon_valid = False
-        student = request.user.profile.student
         credited_amount = 0
         booking_date = request.POST['booking_date']
         booking_time = request.POST['booking_time']
@@ -530,7 +503,7 @@ def bookTutor(request, tutor_id):
                 context['msg']="Insufficient wallet balance."
                 return render(request, 'book_tutor.html', context)
         
-        booking_time_valid = validateBookingDatetime(date_start, date_end, tutor)
+        booking_time_valid = validateBookingDatetime(date_start, date_end, tutor, student)
         
         # check booking valid or not
         if not booking_time_valid :
@@ -564,31 +537,10 @@ def bookTutor(request, tutor_id):
         occupied_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in occupiedTimeObj]
         context['occupied_time']=occupied_time
 
-    # time table generation
-    # 8:30 - 18:30
-    d=['','8:30']
-    for x in range (9,19):
-        d.append("{}:00".format(x))
-        d.append("{}:30".format(x))
-    row_list=[]
-    row_list.append(d)
-    current = getCurrentDatetime() + timedelta(days=1)
-    current = current.replace(hour=8,minute=30,second=0, microsecond=0)
-    
-    for x in range (0,7):
-        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
-        temp = [current.date().strftime('%m-%d')]
-        temp.append(validateBookingDatetime(current, current+timedelta(minutes=30), tutor))
-        for y in range (0,20):
-            current = current + timedelta(minutes=30)
-            temp.append(validateBookingDatetime(current, current+timedelta(minutes=30), tutor))
-        row_list.append(temp)
-        current = current.replace(hour=8,minute=30,second=0, microsecond=0)
-        current = current + timedelta(days=1)
-
+    # generate again to update change
+    row_list = generateBookingTimetable(tutor, student)
     context['row_list']=zip(*row_list)
-    # end of time table generation
-
+    
     return render(request, 'book_tutor.html', context)
 
 @login_required
@@ -675,7 +627,9 @@ def signup(request):
 
 def notification(request):
     if request.user.username =="admin":
-        return HttpResponse("You logged in as admin.")
+        request.session['title'] = "Restricted Access"
+        request.session['message'] = "You are logged-in as admin."
+        return HttpResponseRedirect(reverse('message'))
 
     if request.POST:
         msg=""

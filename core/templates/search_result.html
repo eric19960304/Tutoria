@@ -67,8 +67,8 @@
                         {% if tutor.hasMoreThanTwoRating %}
                             Average review: {{tutor.getAverageRating}}<br/>
                         {% endif %}
-                        <a href="{% url 'view_tutor_profile' tutor.id %}">View detailed profile</a> / 
-                        <a href="{% url 'book_tutor' tutor.id %}">Book this tutor</a>
+                        <a href="{% url 'view_tutor_profile' tutor.id %}" target="_blank">View detailed profile</a> / 
+                        <a href="{% url 'book_tutor' tutor.id %}" target="_blank">Book this tutor</a>
                     </div>
                 {% endfor %}
             </div>
