@@ -87,6 +87,16 @@ def sendCancelEmailToTutor(s):
         fail_silently=False,
         )
 
+def sendCancelNotificationToTutor(s):
+    # send notification to tutor
+    title = "Tutorial cancellation"
+    message = 'Dear '+s.tutor.profile.user.username+",\n"+\
+        'Student with username <'+s.student.profile.user.username+ '>'+\
+        ' has cancelled a session with you which was planned to start at '+\
+        s.getBookingDateStr+ ', from ' +s.getStartTimeStr+ ' to ' + s.getEndTimeStr+'.\n'
+    n = Notification(profile=s.tutor.profile, title=title, message=message, date=getCurrentDatetime())
+    n.save()
+
 def sendBookingNotification(s, credited_amount):
     isPrivateTutor = s.tutor.isPrivateTutor
 

@@ -277,6 +277,12 @@ def editProfile(request):
             user.save()
             changeFlag = True
             msg += "Email has been changed.\n"
+        if 'phone_number' in request.POST and request.POST['phone_number']!=user.profile.phone:
+            p = Profile.objects.filter(user=user)[0]
+            p.phone = request.POST['phone_number']
+            p.save()
+            changeFlag = True
+            msg += "Phone number has been changed.\n"
         
         
         if user.profile.isTutor:
@@ -448,6 +454,7 @@ def viewTimetable(request):
                 if s.status =="booked":
                     # send email to tutor
                     sendCancelEmailToTutor(s)
+                    sendCancelNotificationToTutor(s)
                     msg += "Session at {} from {} to {} canceled successfully.\n".format(s.getBookedDateStr, s.getStartTimeStr, s.getEndTimeStr)
                     hasCancelled = True
                     s.status = "cancelled"
@@ -457,6 +464,7 @@ def viewTimetable(request):
 
             if hasPrivateTutor and hasCancelled:
                         msg += '%.2f'%user_debit_amount + ' HKD has been refunded to your wallet.'
+            
             
             context['msg']=msg
 

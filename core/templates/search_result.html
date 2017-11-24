@@ -64,6 +64,10 @@
                         {% if tutor.isPrivateTutor %}
                             Hourly rate: {{tutor.hourly_rate}}<br/>
                         {% endif %}
+                        Subject tag: 
+                        {% for t in tutor.tag.all %}
+                            #{{t.name}} 
+                        {% endfor %} <br/>
                         {% if tutor.hasMoreThanTwoRating %}
                             Average review: {{tutor.getAverageRating}}<br/>
                         {% endif %}
