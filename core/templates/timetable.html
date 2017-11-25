@@ -57,21 +57,22 @@
         (T = Tutorial Session Booked, S = Tutoria appointment, B = Blacked-out timeslot)
     {% endif %}
     <br/><br/>
-    Black out timeslot:
-    <form action="{% url 'view_timetable' %}" method="post">
-        {% csrf_token %}
-        <div id="timeslot_picker_group">
-            <input type="hidden" name="form_type" value="blackout"/>
-            
-            From: <input type="datetime-local" name="blackOutStartDatetime"><br/>
-            To  : <input type="datetime-local" name="blackOutEndDatetime"><br/>
-        </div>
-        <br/>
-        <input type="submit" value="Add blacked-out timeslot" />
-    </form>
-    <br/><br/>
+    {% if user.profile.isTutor %}
+        Black out timeslot:
+        <form action="{% url 'view_timetable' %}" method="post">
+            {% csrf_token %}
+            <div id="timeslot_picker_group">
+                <input type="hidden" name="form_type" value="blackout"/>
+                
+                From: <input type="datetime-local" name="blackOutStartDatetime"><br/>
+                To  : <input type="datetime-local" name="blackOutEndDatetime"><br/>
+            </div>
+            <br/>
+            <input type="submit" value="Add blacked-out timeslot" />
+        </form>
+        <br/><br/>
+    {% endif %}
     {% if user.profile.isStudent %}
-
         {% if not student_session_list %}
             <p>You don't have any tutorial session yet.</p>
         {% else %}

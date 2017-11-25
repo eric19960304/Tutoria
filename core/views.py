@@ -551,13 +551,13 @@ def bookTutor(request, tutor_id):
     # get tutor unavaliableTimeslot in next 7 date
     current = getCurrentDatetime()
     week_after = current + timedelta(days=7)
-    unavailableTimeObj = Session.objects.filter(tutor=tutor).filter(isBlackedout=True).filter(end_date__gt=current).filter(start_date__lt=week_after)
-    occupiedTimeObj = Session.objects.filter(tutor=tutor).exclude(status="cancelled").filter(isBlackedout=False).filter(status="booked").filter(end_date__gt=current).filter(start_date__lt=week_after)
-    unavailable_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in unavailableTimeObj]
-    occupied_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in occupiedTimeObj]
+    #unavailableTimeObj = Session.objects.filter(tutor=tutor).filter(isBlackedout=True).filter(end_date__gt=current).filter(start_date__lt=week_after)
+    #occupiedTimeObj = Session.objects.filter(tutor=tutor).exclude(status="cancelled").filter(isBlackedout=False).filter(status="booked").filter(end_date__gt=current).filter(start_date__lt=week_after)
+    #unavailable_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in unavailableTimeObj]
+    #occupied_time = [ getDatetimeStr(t.start_date)+" to "+getDatetimeStr(t.end_date) for t in occupiedTimeObj]
     context['tutor']=tutor
-    context['unavailable_time']=unavailable_time
-    context['occupied_time']=occupied_time
+    #context['unavailable_time']=unavailable_time
+    #context['occupied_time']=occupied_time
     # generate timetable
     row_list = generateBookingTimetable(tutor, student)
     context['row_list']=zip(*row_list)

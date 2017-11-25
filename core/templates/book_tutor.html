@@ -108,24 +108,6 @@ Tutor's Timetable:
 </form>
 
 
-{% if unavailable_time %} 
-    All Unavailable timeslot: <br/>
-    <ul>
-        {% for each in unavailable_time %}
-            <li>{{ each }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-{% if occupied_time %}
-    All Occupied timeslot: <br/>
-    <ul>
-        {% for each in occupied_time %}
-            <li>{{ each }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-
-
 <script>
     var tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
