@@ -41,6 +41,12 @@ The following bug is fixed after the demo:
 2) The timetable will not display the time row "18:30" (indicating 18:30 to 19:00 which is not in the working hour).
 3) The completeness check of tutor profile is now consistant with the searching result.
 
+###########################
+Features that implemented but hasn't shown in Demo:
+1) Send private message (as Notification instance) to tutor, tutor reply message to student.
+2) Upload profile picture.
+3) Delete Notifications.
+
 ############################
 Limitation:
 1) Tag is not user defined, tutor can only select the tag that we provided.
