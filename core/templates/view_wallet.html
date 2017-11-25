@@ -10,12 +10,14 @@
         <a href="{% url 'add_to_wallet' %}" >
             <b>Top up wallet</b>
         </a>
+        <br/>
     {% endif %}
 
     {% if user.profile.isTutor %}
         <a href="{% url 'draw_from_wallet' %}" >
-            Withdraw money to bank account
+            <b>Withdraw money to bank account</b>
         </a>
+        <br/>
     {% endif %}
     <br/><br/>
     {% if transactionHistory %}
