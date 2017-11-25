@@ -33,7 +33,7 @@ pip install schedule
 To schedule the session management routine, running:
 python scheduler.py [schedule time in %H:%M]
 
-For example, the command "python scheduler.py 8:30, then the command "python manage.py managesession >> manage_session_log.txt" will be run in every 30 minutes starting at 8:30 at the day of running the script.
+For example, the command "python scheduler.py 8:30", then the command "python manage.py managesession >> manage_session_log.txt" will be run in every 30 minutes starting at 8:30 at the day of running the script.
 
 ############################
 The following bug is fixed after the demo:
