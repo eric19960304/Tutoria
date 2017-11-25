@@ -37,3 +37,7 @@
 [25/Nov/2017 16:00:00] <Session management finished>
 [25/Nov/2017 16:30:00] <Session management begin...>
 [25/Nov/2017 16:30:00] <Session management finished>
+[25/Nov/2017 21:00:00] <Session management begin...>
+[25/Nov/2017 21:00:00]   Locked session: Session 134: ma <-> kitty, 2017-11-26 17:00 - 2017-11-26 18:00
+[25/Nov/2017 21:00:00]   Deleted 1 unreferenced wallet
+[25/Nov/2017 21:00:00] <Session management finished>

@@ -660,7 +660,6 @@ def searchTutor(request):
     else:
         tutor_list = Tutor.objects.exclude(tutor_type__isnull=True)\
                               .exclude(university__isnull=True) \
-                              .exclude(bio__isnull=True)\
                               .exclude(profile__user__first_name__isnull=True)\
                               .exclude(profile__user__last_name__isnull=True) \
                               .exclude(isHideProfile=True)

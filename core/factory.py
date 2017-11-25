@@ -11,20 +11,11 @@ def initDatabase():
         TutorType(tutor_type="private").save()
     if len(TutorType.objects.filter(tutor_type="contracted"))==0:
         TutorType(tutor_type="contracted").save()
-    if len(System.objects.all())==0:
-        w = Wallet()
-        w.save()
-        s = System(wallet=w)
-        s.save()
 
 
 def createUser(user, user_type, phone_no ):
 
     initDatabase()
-
-    #create wallet
-    w = Wallet()
-    w.save()
 
     #create profile
     #get UserType object
@@ -34,6 +25,11 @@ def createUser(user, user_type, phone_no ):
         userType = UserType.objects.get(user_type="tutor")
     else:
         userType = UserType.objects.get(user_type="both")
+
+    #create wallet
+    w = Wallet()
+    w.save()
+    
     pr = Profile(user=user,phone=phone_no,user_type=userType, wallet=w)
     pr.save()
 

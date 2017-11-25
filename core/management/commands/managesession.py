@@ -46,5 +46,17 @@ class Command(BaseCommand):
         if len(c_list)>0:
             print("[{}]   Deleted expired Coupons: {}".format(current.strftime("%d/%b/%Y %H:%M:%S"), c_list))
         c_list.delete()
-
+        # delete unreferenced wallet
+        w_list = Wallet.objects.filter(profile=None)
+        s = System.objects.all()[0]
+        system_wallet = s.wallet
+        deleteFlag = False
+        count=0
+        for each in w_list:
+            if each != system_wallet:
+                each.delete()
+                deleteFlag = True
+                count=count+1
+        if deleteFlag:
+            print("[{}]   Deleted {} unreferenced wallet".format(current.strftime("%d/%b/%Y %H:%M:%S"),count))
         print("[{}] <Session management finished>".format(current.strftime("%d/%b/%Y %H:%M:%S")))

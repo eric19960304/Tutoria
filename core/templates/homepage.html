@@ -11,6 +11,7 @@
         {% ifnotequal user.profile.tutor.profileCompleteness "100" %}
             Your profile is not completed.<br/>
             You will only be shown at searching result when you has completed your profile. <br/>
+            Fields you should complete: First name, last name, tutor type, university. <br/>
             Current profile progress: {{user.profile.tutor.profileCompleteness}}%
         {% endifnotequal %}
     {% endif %}

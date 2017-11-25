@@ -34,11 +34,14 @@ class UserType(models.Model):
         return str(self.id)+": "+self.user_type
 
 class Wallet(models.Model):
-    amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.0, blank=True, null=True)
+    amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.0)
     def __str__(self):
         s = System.objects.all()[0]
         w = s.wallet
-        if self!=w:  # not system wallet
+        p = Profile.objects.filter(wallet=self)
+        if len(p)==0 and w!=self:
+            return str(self.id)+": To be deleted"
+        elif w!=self:  # not system wallet
             return "Wallet "+str(self.id)+': ' +self.profile.user.username
         else:
             return str(self.id)+": System wallet"
@@ -121,7 +124,7 @@ class Tutor(models.Model):
         return "Tutor "+str(self.id)+": "+self.profile.user.username
     @property
     def profileCompleteness(self):
-        percent = { 'tutor_type': 25, 'Name': 25, 'university': 15, 'bio': 15, 'courses': 10, 'tags': 10}
+        percent = { 'tutor_type': 34, 'Name': 33, 'university': 33}
         total = 0
         if self.tutor_type!=None:
             total += percent.get('tutor_type', 0)
@@ -129,12 +132,6 @@ class Tutor(models.Model):
             total += percent.get('Name', 0)
         if self.university!=None:
             total += percent.get('university', 0)
-        if self.bio!=None:
-            total += percent.get('bio', 0)
-        if self.course!=None:
-            total += percent.get('courses', 0)
-        if self.tag!=None:
-            total += percent.get('tags', 0)
         return "%d"%(total)
     @property
     def getTutorType(self):

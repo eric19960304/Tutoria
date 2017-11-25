@@ -30,22 +30,23 @@ def bookingCredit(session):
         
     
     if tutor.isPrivateTutor:
+        if user_credit_amount > 0:
+
+            # credit user wallet
+            wallet = student.profile.wallet
+            wallet.credit( user_credit_amount )
+            wallet.save()
+            # debit system wallet
+            sys_wallet = Wallet.getSystemWallet()
+            sys_wallet.debit( user_credit_amount )
+            sys_wallet.save()
         
-        # credit user wallet
-        wallet = student.profile.wallet
-        wallet.credit( user_credit_amount )
-        wallet.save()
-        # debit system wallet
-        sys_wallet = Wallet.getSystemWallet()
-        sys_wallet.debit( user_credit_amount )
-        sys_wallet.save()
+            # record the transaction
+            t = Transaction(profile=student.profile, date=getCurrentDatetime(), amount=user_credit_amount, session=session, isDebit=False,isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee payment")
+            t.save()
 
-        # record the transaction
-        t = Transaction(profile=student.profile, date=getCurrentDatetime(), amount=user_credit_amount, session=session, isDebit=False,isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee payment")
-        t.save()
-
-        st = Transaction(date=getCurrentDatetime(), amount=user_credit_amount,session=session, isDebit=True,isTutoriaOwned=True, isSystemWalletRelated=True, isTutorFeeRelated=True, description="Tutor fee from student")
-        st.save()
+            st = Transaction(date=getCurrentDatetime(), amount=user_credit_amount,session=session, isDebit=True,isTutoriaOwned=True, isSystemWalletRelated=True, isTutorFeeRelated=True, description="Tutor fee from student")
+            st.save()
         
         return user_credit_amount
     else:
@@ -62,21 +63,22 @@ def bookingRefund(session):
         else:
             user_debit_amount = tutor.hourly_rate*Decimal(1.05)
         
-        # debit user wallet
-        wallet = student.profile.wallet
-        wallet.debit( user_debit_amount )
-        wallet.save()
-        # credit system wallet
-        sys_wallet = Wallet.getSystemWallet()
-        sys_wallet.credit( user_debit_amount )
-        sys_wallet.save()
+        if user_debit_amount > 0:
+            # debit user wallet
+            wallet = student.profile.wallet
+            wallet.debit( user_debit_amount )
+            wallet.save()
+            # credit system wallet
+            sys_wallet = Wallet.getSystemWallet()
+            sys_wallet.credit( user_debit_amount )
+            sys_wallet.save()
 
-        # record the transaction
-        t = Transaction(profile=student.profile, date=getCurrentDatetime(), amount=user_debit_amount, session=session, isDebit=True, isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee refund")
-        t.save()
+            # record the transaction
+            t = Transaction(profile=student.profile, date=getCurrentDatetime(), amount=user_debit_amount, session=session, isDebit=True, isTutorFeeRelated=True, isSystemWalletRelated=True, description="Tutor fee refund")
+            t.save()
 
-        st = Transaction(date=getCurrentDatetime(), amount=user_debit_amount, session=session, isDebit=False,isTutoriaOwned=True, isSystemWalletRelated=True, isTutorFeeRelated=True, description="Refund to student")
-        st.save()
+            st = Transaction(date=getCurrentDatetime(), amount=user_debit_amount, session=session, isDebit=False,isTutoriaOwned=True, isSystemWalletRelated=True, isTutorFeeRelated=True, description="Refund to student")
+            st.save()
 
         return user_debit_amount
     else:

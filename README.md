@@ -12,6 +12,12 @@ pip install pillow
 admin username: admin
 admin password: jamsandwich
 
+Database initialization:
+If the database is reset, the following instance should be created before running the server:
+(a) a Wallet instance
+(b) a System instance containing a wallet instance created in (a)
+(c) University instances
+
 To run server:
 python manage.py runserver
 
@@ -28,3 +34,9 @@ To schedule the session management routine, running:
 python scheduler.py [schedule time in %H:%M]
 
 For example, the command "python scheduler.py 8:30, then the command "python manage.py managesession >> manage_session_log.txt" will be run in every 30 minutes starting at 8:30 at the day of running the script.
+
+############################
+The following bug is fixed after the demo:
+1) Tutor's detailed profile can now display the rating of each review correctly.
+2) The timetable will not display the time row "18:30" (indicating 18:30 to 19:00 which is not in the working hour).
+3) The completeness check of tutor profile is now consistant with the searching result.
