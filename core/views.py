@@ -259,7 +259,7 @@ def editProfile(request):
             t = user.profile.tutor
             context = {'tag': tag, 'course': course, 'university': university , 's_tag':s_tag, 's_course':s_course, 's_bio': t.bio, 'hide': t.isHideProfile,'isPrivateTutor':t.isPrivateTutor,'s_uni': t.university, 's_hourly_rate': t.hourly_rate, 'pic':user.profile.image}
         else:
-            context = {}
+            context = {'pic':user.profile.image}
         return render(request, 'edit_profile.html', context)
     else:
         changeFlag = False
@@ -271,7 +271,7 @@ def editProfile(request):
             p.image = request.FILES['pic']
             p.save()
             changeFlag = True
-            return render(request, 'avatar_confirm.html')
+            msg += "Avatar has been changed.\n"
         if 'first_name' in request.POST and request.POST['first_name']!=user.first_name:
             user.first_name =  request.POST['first_name']
             user.save()

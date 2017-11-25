@@ -6,6 +6,9 @@ Group 10 - Jamsandwich Co.
 python version: 3.6.3
 django version: 1.11.6
 
+Prerequisite install:
+pip install pillow
+
 admin username: admin
 admin password: jamsandwich
 
