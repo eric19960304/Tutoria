@@ -4,25 +4,29 @@
 {% block content %}
     <h2>My profile</h2><br/>
 
+    <div>
      {% if user.profile.image %}  
         <img src="{{ user.profile.image.url }}" height="100" width="100"/>
      {% else %}
         <img src="/media/profile_image/default_avatar.gif" height="100" width="100"/>
      {% endif %}
+    </div>
 
 <form action="{% url 'edit_profile' %}" method="POST" id="profile_form" enctype="multipart/form-data">
     {% csrf_token %}
 
-    <input type="file" name="pic">
-    <br />
+    <label class="btn btn-default btn-file">
+    <input type="file" name="pic" class="inputfile">
+    Choose a file</label>
+    <br /><br />
     First name: <input name="first_name" type="text" maxlength="30" value="{{user.first_name}}">
-    <br/>
+    <br/><br />
     Last name: <input name="last_name" type="text" maxlength="30" value="{{user.last_name}}">
-    <br/>
+    <br/><br />
     Email: <input name="email" type="text" maxlength="254" value="{{user.email}}">
-    <br/>
+    <br/><br />
     Phone number: <input name="phone_number" type="text" maxlength="20" value="{{user.profile.phone}}">
-    <br/>
+    <br/><br />
     {% if user.profile.isTutor and not user.profile.tutor.getTutorType|length > 0 %}
         Tutor type: 
         <select name="tutor_type">
@@ -40,11 +44,11 @@
                 <option value="private" >Private tutor</option>
                 <option value="contracted" selected>Contracted tutor</option>
             {% endif %}
-        </select> <br/>
+        </select> <br/><br />
         {% if isPrivateTutor %}
             Hourly rate: <input type="number" step="10" name="hourly_rate" value="{{s_hourly_rate}}"> <br/>
         {% endif %}
-        Edit Bio: <textarea rows="3" cols="50" name="bio" form="profile_form" maxlength="500">{{s_bio}}</textarea><br/>
+        Edit Bio: <textarea rows="3" cols="50" name="bio" form="profile_form" maxlength="500">{{s_bio}}</textarea><br/><br />
         University:
         <select name="university">
             <option disabled selected value> -Please select- </option>
@@ -55,7 +59,7 @@
                     <option value="{{u.abbrev}}">{{u.name}}</option>
                 {% endifequal %}
             {% endfor %}
-        </select><br/>
+        </select><br/><br />
         {% if course %}
         Courses:
         <select name="course" multiple size="4">
@@ -66,7 +70,7 @@
                     <option value="{{c.code}}">{{c.code}} {{c.name}}</option>
                 {% endif %}
             {% endfor %}
-        </select><br/>
+        </select><br/><br />
         {% endif %}
         Tags:
         <select name="tag" multiple  size="4">
@@ -79,7 +83,7 @@
             {% endfor %}
         </select>
         
-        <br/>
+        <br/><br />
         Visibility of profile:
         {% if hide %}
             <input type="checkbox" name="hide" value="Yes" checked/>hide profile<br/>
@@ -88,7 +92,7 @@
         {% endif %}
     {% else %}
     {% endif %}
-    <br/>
+    <br/><br />
     <a href="{% url 'change_password' %}">change password</a>
     <br/><br/>
     <input type="submit" value="Submit" />
