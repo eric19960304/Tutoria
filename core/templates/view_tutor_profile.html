@@ -5,8 +5,18 @@
 {% block content %}
 
         {% if tutor %}
+
+           
+
             <h2>Tutor's Profile</h2>
             <hr/>
+            <div>
+            {% if tutor.profile.image %}  
+                <img src="{{ tutor.profile.image.url }}" height="100" width="100"/>
+            {% else %}
+                <img src="/media/profile_image/default_avatar.gif" height="100" width="100"/>
+            {% endif %}
+            </div>
             {{tutor.profile.getUserFullName}} <br/>
             {{tutor.university.name}}<br/>
             {% if tutor.isPrivateTutor %}
@@ -67,10 +77,6 @@
         {% endif %}
         <hr/>
 
-        <div class="form-group">
-        <div class="col-xs-7">
-        <button onclick="window.history.back();" >Back to search result</button>
-        </div>
-    </div>
+        
 
 {% endblock %}
