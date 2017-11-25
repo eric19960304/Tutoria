@@ -9,8 +9,7 @@ class SignUpForm(UserCreationForm):
     phone_no = forms.CharField(max_length=20, required=False, help_text='Required')
     choices=[('student','student'),('tutor','tutor'),('both','both')]
     user_type = forms.ChoiceField(choices=choices, widget=forms.RadioSelect())
-    image = forms.ImageField(required=False)
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2','phone_no','user_type','image' )
+        fields = ('username', 'email', 'password1', 'password2','phone_no','user_type' )
         #fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2','phone_no','user_type' )

@@ -252,8 +252,10 @@ def editProfile(request):
         tag = Tag.objects.all()
         if user.profile.tutor.university!=None:
             course = Course.objects.filter(university=user.profile.tutor.university)
+        else:
+            course =None
         university = University.objects.all()
-    
+        
     if not request.POST:
         if user.profile.isTutor and user.profile.tutor.getTutorType!="":
             t = user.profile.tutor
@@ -661,8 +663,6 @@ def searchTutor(request):
                               .exclude(bio__isnull=True)\
                               .exclude(profile__user__first_name__isnull=True)\
                               .exclude(profile__user__last_name__isnull=True) \
-                              .exclude(course__isnull=True)\
-                              .exclude(tag__isnull=True)\
                               .exclude(isHideProfile=True)
 
         if 'tutor_type' in request.GET:
@@ -702,8 +702,6 @@ def viewTutorProfile(request, tutor_id):
     tutor = get_object_or_404(Tutor, pk=tutor_id)
     reviews = Review.objects.filter(tutor=tutor)
     context= {'tutor':tutor, 'reviews': reviews}
-    if len(reviews)<3:
-        context['noAverage']=True
     return render(request, 'view_tutor_profile.html', context)
 
 
@@ -717,12 +715,6 @@ def signup(request):
             phone_no = form.cleaned_data.get('phone_no')
 
             createUser(user, user_type, phone_no)
-
-            if 'image' in request.FILES:
-                p = Profile.objects.filter(user=user)[0]
-                p.image.delete(False)
-                p.image = request.FILES['image']
-                p.save()
 
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=user.username, password=raw_password)

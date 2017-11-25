@@ -210,7 +210,7 @@ def reviewInvitation(s):
 def generateTimetableSymbol(date_start, date_end, profile):
     result = ""
     if profile.isTutor:
-        session_list = Session.objects.filter(tutor=profile.tutor).filter(isBlackedout=False).exclude(status="cancelled").exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
+        session_list = Session.objects.filter(tutor=profile.tutor).filter(isBlackedout=False).exclude(status="cancelled").exclude(status="ended").exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
         if len(session_list)>0:
             result+="S "  # tutorial session appointment
         session_list = Session.objects.filter(tutor=profile.tutor).filter(isBlackedout=True).exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
@@ -218,7 +218,7 @@ def generateTimetableSymbol(date_start, date_end, profile):
             result+="B " # blacked-out timeslot
     
     if profile.isStudent:
-        session_list = Session.objects.filter(student=profile.student).filter(isBlackedout=False).exclude(status="cancelled").exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
+        session_list = Session.objects.filter(student=profile.student).filter(isBlackedout=False).exclude(status="cancelled").exclude(status="ended").exclude(end_date__lte=date_start).exclude(start_date__gte=date_end)
         if len(session_list)>0:
             result+="T " # tutorial session booked
     
@@ -240,7 +240,7 @@ def generateBookingTimetable(tutor, student):
         current = current.replace(hour=8,minute=30,second=0, microsecond=0)
         temp = [current.date().strftime('%m-%d')]
         temp.append(validateBookingDatetime(current, current+timedelta(minutes=30), tutor, student))
-        for y in range (0,20):
+        for y in range (0,19):
             current = current + timedelta(minutes=30)
             temp.append(validateBookingDatetime(current, current+timedelta(minutes=30), tutor, student))
         row_list.append(temp)
@@ -265,7 +265,7 @@ def generateProfileTimetable1(profile):
         current = current.replace(hour=8,minute=30,second=0, microsecond=0)
         temp = [current.date().strftime('%m-%d')]
         temp.append(generateTimetableSymbol(current, current+timedelta(minutes=30), profile))
-        for y in range (0,20):
+        for y in range (0,19):
             current = current + timedelta(minutes=30)
             temp.append(generateTimetableSymbol(current, current+timedelta(minutes=30), profile))
         row_list.append(temp)
@@ -289,7 +289,7 @@ def generateProfileTimetable2(profile):
         current = current.replace(hour=8,minute=30,second=0, microsecond=0)
         temp = [current.date().strftime('%m-%d')]
         temp.append(generateTimetableSymbol(current, current+timedelta(minutes=30), profile))
-        for y in range (0,20):
+        for y in range (0,19):
             current = current + timedelta(minutes=30)
             temp.append(generateTimetableSymbol(current, current+timedelta(minutes=30), profile))
         row_list.append(temp)

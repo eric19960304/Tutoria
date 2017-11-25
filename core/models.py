@@ -36,7 +36,9 @@ class UserType(models.Model):
 class Wallet(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.0, blank=True, null=True)
     def __str__(self):
-        if len(Wallet.objects.exclude(profile=None).filter(pk=self.id))>0:  # not system wallet
+        s = System.objects.all()[0]
+        w = s.wallet
+        if self!=w:  # not system wallet
             return "Wallet "+str(self.id)+': ' +self.profile.user.username
         else:
             return str(self.id)+": System wallet"
