@@ -124,3 +124,5 @@ MEDIR_ROOT = os.path.join(BASE_DIR, 'core/media')
 LOGIN_REDIRECT_URL = 'homepage'
 LOGIN_URL = 'login'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+ALLOWED_HOSTS = ['eggni.ddns.net', 'localhost', '127.0.0.1']
