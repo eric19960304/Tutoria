@@ -1,1 +1,1 @@
-python manage.py runserver eggni.ddns.net:80
+python manage.py runserver localhost:80
