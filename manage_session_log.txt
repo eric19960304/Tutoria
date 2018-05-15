@@ -41,3 +41,24 @@
 [25/Nov/2017 21:00:00]   Locked session: Session 134: ma <-> kitty, 2017-11-26 17:00 - 2017-11-26 18:00
 [25/Nov/2017 21:00:00]   Deleted 1 unreferenced wallet
 [25/Nov/2017 21:00:00] <Session management finished>
+[27/Mar/2018 20:30:00] <Session management begin...>
+[27/Mar/2018 20:30:00]   Locked session: Session 145: testuser <-> kitty, 2017-11-29 12:00 - 2017-11-29 13:00
+[27/Mar/2018 20:30:00]   Ended session: Session 131: eric <-> david, 2017-11-26 12:00 - 2017-11-26 13:00
+[27/Mar/2018 20:30:00]   Sent review invitation to Student 1: eric
+[27/Mar/2018 20:30:00]   Transfered fee to tutor david
+[27/Mar/2018 20:30:00]   Sent payment notification to tutor david
+[27/Mar/2018 20:30:00]   Ended session: Session 134: ma <-> kitty, 2017-11-26 17:00 - 2017-11-26 18:00
+[27/Mar/2018 20:30:00]   Sent review invitation to Student 17: ma
+[27/Mar/2018 20:30:00]   Transfered fee to tutor kitty
+[27/Mar/2018 20:30:00]   Sent payment notification to tutor kitty
+[27/Mar/2018 20:30:00]   Ended session: Session 136: eric <-> kitty, 2017-11-26 16:00 - 2017-11-26 17:00
+[27/Mar/2018 20:30:00]   Sent review invitation to Student 1: eric
+[27/Mar/2018 20:30:00]   Transfered fee to tutor kitty
+[27/Mar/2018 20:30:00]   Sent payment notification to tutor kitty
+[27/Mar/2018 20:30:00]   Ended session: Session 145: testuser <-> kitty, 2017-11-29 12:00 - 2017-11-29 13:00
+[27/Mar/2018 20:30:00]   Sent review invitation to Student 21: testuser
+[27/Mar/2018 20:30:00]   Transfered fee to tutor kitty
+[27/Mar/2018 20:30:00]   Sent payment notification to tutor kitty
+[27/Mar/2018 20:30:00]   Deleted expired ReviewTempUrls: <QuerySet [<ReviewTempUrl: Review url 11: david<->eric>]>
+[27/Mar/2018 20:30:00]   Deleted expired Coupons: <QuerySet [<Coupon: Coupon (7): code=AAAAAAAAAAAA , expire date=2017-12-15 05:55>, <Coupon: Coupon (8): code=VONYMUKWP27L , expire date=2017-11-30 00:00>, <Coupon: Coupon (9): code=UNYWXWOSLLNC , expire date=2017-12-13 00:00>, <Coupon: Coupon (10): code=305YON8NOL2L , expire date=2017-12-13 00:00>, <Coupon: Coupon (11): code=CKDFHO7Z0HKH , expire date=2017-12-13 00:00>]>
+[27/Mar/2018 20:30:00] <Session management finished>
