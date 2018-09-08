@@ -15,31 +15,31 @@ import string
 
 def toLocalDatetime(date):
     local_timezone = timezone(settings.TIME_ZONE)
-    return date.astimezone(local_timezone)
+    return local_timezone.localize(date)
 
 def getCurrentDatetime():
     local_timezone = timezone(settings.TIME_ZONE)
-    return datetime.now().astimezone(local_timezone)
+    return local_timezone.localize(datetime.now())
 
 def getTimeStr(date):
     local_timezone = timezone(settings.TIME_ZONE)
-    return date.astimezone(local_timezone).strftime('%H:%M')
+    return local_timezone.localize(date).strftime('%H:%M')
 
 def getDatetimeStr(date):
     local_timezone = timezone(settings.TIME_ZONE)
-    return date.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')
+    return local_timezone.localize(date).strftime('%Y-%m-%d %H:%M')
 
 def getDateStr(date):
     local_timezone = timezone(settings.TIME_ZONE)
-    return date.astimezone(local_timezone).strftime('%Y-%m-%d')
+    return local_timezone.localize(date).strftime('%Y-%m-%d')
 
 def getDatetimeStr2(date):
     local_timezone = timezone(settings.TIME_ZONE)
-    return date.astimezone(local_timezone).strftime('%e %b %Y, %H:%M')
+    return local_timezone.localize(date).strftime('%e %b %Y, %H:%M')
 
 def getDateStr2(date):
     local_timezone = timezone(settings.TIME_ZONE)
-    return date.astimezone(local_timezone).strftime('%e %b %Y')
+    return local_timezone.localize(date).strftime('%e %b %Y')
 
 def getNextHalfHour(date):
     delta = timedelta(minutes=30)

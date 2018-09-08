@@ -34,7 +34,7 @@ django_timezone.now()
 from tutoriabeta import settings
 from pytz import timezone
 local_timezone = timezone(settings.TIME_ZONE)
-date_var.astimezone(local_timezone)
+local_timezone.localize(date_var)
 
 operator precedence of boolean operator in template, from lowest to highest:
 or

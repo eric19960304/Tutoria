@@ -165,8 +165,8 @@ class Session(models.Model):
     isBlackedout = models.BooleanField(default=False)
     def __str__(self):
         local_timezone = timezone(settings.TIME_ZONE)
-        s_d = self.start_date.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')
-        n_d = self.end_date.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')
+        s_d = local_timezone.localize(self.start_date).strftime('%Y-%m-%d %H:%M')
+        n_d = local_timezone.localize(self.end_date).strftime('%Y-%m-%d %H:%M')
         try:
             return "Session "+str(self.id)+": "+self.student.profile.user.username+" <-> "+self.tutor.profile.user.username +\
                     ", " + s_d + " - " + n_d
@@ -175,19 +175,19 @@ class Session(models.Model):
     @property
     def getStartTimeStr(self):
         local_timezone = timezone(settings.TIME_ZONE)
-        return self.start_date.astimezone(local_timezone).strftime('%H:%M')
+        return local_timezone.localize(self.start_date).strftime('%H:%M')
     @property
     def getEndTimeStr(self):
         local_timezone = timezone(settings.TIME_ZONE)
-        return self.end_date.astimezone(local_timezone).strftime('%H:%M')
+        return local_timezone.localize(self.end_date).strftime('%H:%M')
     @property
     def getBookedDateStr(self):
         local_timezone = timezone(settings.TIME_ZONE)
-        return self.start_date.astimezone(local_timezone).strftime('%e %b %Y')
+        return local_timezone.localize(self.start_date).strftime('%e %b %Y')
     @property
     def getBookingDateStr(self):
         local_timezone = timezone(settings.TIME_ZONE)
-        return self.booking_date.astimezone(local_timezone).strftime('%e %b %Y, %H:%M')
+        return local_timezone.localize(self.booking_date).strftime('%e %b %Y, %H:%M')
 
 class Transaction(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE,blank=True, null=True)
@@ -210,7 +210,7 @@ class Transaction(models.Model):
     @property
     def getDate(self):
         local_timezone = timezone(settings.TIME_ZONE)
-        return self.date.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')
+        return local_timezone.localize(self.date).strftime('%Y-%m-%d %H:%M')
 
 class System(models.Model):  #single record table storing system info
     wallet = models.OneToOneField(Wallet, on_delete=models.CASCADE)
@@ -233,12 +233,12 @@ class Coupon(models.Model):
     #used_session = models.OneToOneField(Session, null=True, blank=True)
     def __str__(self):
         local_timezone = timezone(settings.TIME_ZONE)
-        return "Coupon ("+str(self.id)+"): code="+self.code+" , expire date="+self.expire_date.astimezone(local_timezone).strftime('%Y-%m-%d %H:%M')
+        return "Coupon ("+str(self.id)+"): code="+self.code+" , expire date="+ local_timezone.localize(self.expire_date).strftime('%Y-%m-%d %H:%M')
     
     @staticmethod
     def validate( coupon_code):
         local_timezone = timezone(settings.TIME_ZONE)
-        c = Coupon.objects.filter(code=coupon_code).filter(expire_date__gte=datetime.now().astimezone(local_timezone))
+        c = Coupon.objects.filter(code=coupon_code).filter(expire_date__gte= local_timezone.localize(datetime.now()))
         return len(c)!=0
 
 class Review(models.Model):

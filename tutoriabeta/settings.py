@@ -25,7 +25,7 @@ SECRET_KEY = '5h4sk=gjg-i&5p6g5rwvt2r!=)0$-p$mhe2e_)z5gayl)mzvw='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['chlau.ddns.net','localhost','127.0.0.1']
+ALLOWED_HOSTS = ['demo.coder.faith','localhost','127.0.0.1']
 
 
 # Application definition
@@ -124,5 +124,3 @@ MEDIR_ROOT = os.path.join(BASE_DIR, 'core/media')
 LOGIN_REDIRECT_URL = 'homepage'
 LOGIN_URL = 'login'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-ALLOWED_HOSTS = ['eggni.ddns.net', 'localhost', '127.0.0.1']
