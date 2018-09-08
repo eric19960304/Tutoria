@@ -1,13 +1,19 @@
 from pytz import timezone
 from datetime import datetime, timedelta
 from tutoriabeta import settings
-
+from django.utils.timezone import activate
 
 # datetime related function
 
+activate(settings.TIME_ZONE)
+
 def toLocalDatetime(date):
     local_timezone = timezone(settings.TIME_ZONE)
-    return date.replace(tzinfo=local_timezone)
+    try:
+        result = date.astimezone(local_timezone)
+    except Exception:
+        result = date
+    return result
 
 def getCurrentDatetime():
     return toLocalDatetime(datetime.now())
