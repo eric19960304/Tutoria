@@ -3,59 +3,12 @@ from django.utils import timezone as django_timezone
 from django.db import IntegrityError
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
-from tutoriabeta import settings
 from pytz import timezone
 from datetime import datetime, timedelta
 from .models import *
+from .datetimeUtils import *
 import random
 import string
-
-
-# datetime related function
-
-def toLocalDatetime(date):
-    local_timezone = timezone(settings.TIME_ZONE)
-    return local_timezone.localize(date)
-
-def getCurrentDatetime():
-    local_timezone = timezone(settings.TIME_ZONE)
-    return local_timezone.localize(datetime.now())
-
-def getTimeStr(date):
-    local_timezone = timezone(settings.TIME_ZONE)
-    return local_timezone.localize(date).strftime('%H:%M')
-
-def getDatetimeStr(date):
-    local_timezone = timezone(settings.TIME_ZONE)
-    return local_timezone.localize(date).strftime('%Y-%m-%d %H:%M')
-
-def getDateStr(date):
-    local_timezone = timezone(settings.TIME_ZONE)
-    return local_timezone.localize(date).strftime('%Y-%m-%d')
-
-def getDatetimeStr2(date):
-    local_timezone = timezone(settings.TIME_ZONE)
-    return local_timezone.localize(date).strftime('%e %b %Y, %H:%M')
-
-def getDateStr2(date):
-    local_timezone = timezone(settings.TIME_ZONE)
-    return local_timezone.localize(date).strftime('%e %b %Y')
-
-def getNextHalfHour(date):
-    delta = timedelta(minutes=30)
-    return date + (datetime.min - date) % delta
-
-def getNearestHalfHour(date):
-    ceiling = getNextHalfHour(date)
-    if date > date.replace(minute=30,second=0, microsecond=0):
-        floor = date.replace(minute=30,second=0, microsecond=0)
-    else:
-        floor = date.replace(minute=0,second=0, microsecond=0)
-    if date - floor <= ceiling - date:
-        return floor
-    else:
-        return ceiling
-
 
 # other function that do not want to put in views
 def sendBookingEmailToTutor(s):
