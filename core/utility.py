@@ -66,7 +66,7 @@ def sendBookingNotification(s, credited_amount):
     if isPrivateTutor:
         student_msg += '\nSince you have booked a private tutor, '+\
                         'HKD '+amount+' has been deducted from your wallet. '+\
-                        'This amount will be refunded if you cancel the session at less 24 hour before the starting time of the session.\n'
+                        'This amount will be refunded if you cancel the session at least 24 hour before the starting time of the session.\n'
 
     s_n = Notification(profile = s.student.profile,title="Booking Notification", message = student_msg, date=now)
     s_n.save()
@@ -80,7 +80,7 @@ def sendBookingNotification(s, credited_amount):
     
     if isPrivateTutor:
         student_msg += 'HKD '+amount+' will be transer to your wallet, '+\
-                        'if the session has not been cancelled at less 24 hour before the starting time of the session.\n'
+                        'if the session has not been cancelled at least 24 hour before the starting time of the session.\n'
 
     t_n = Notification(profile = s.tutor.profile, title="Appointment Notification" , message = tutor_msg, date=now)
     t_n.save()

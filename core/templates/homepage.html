@@ -7,6 +7,19 @@
 
     <h2>Welcome	{{user.profile.getUserFullName}}!</h2>
     <p>Tutoria, the best tutor brokering platform EVER.</p>
+    <p>
+        Guide:<br/>
+        1. Students is not allowed to book sessions that will start at least 24 hours from current time.<br/>
+        2. When students booked a tutor, they will pay the tuition fee + 5% commission fee. (unless they used a coupon)<br/>
+        3. Students can cancel any sessions that will not start at least 24 hours from current time.<br/>
+        4. Tutor will receive the tuition fee at the end of the tutorial.<br/>
+        5. After the tutorial is finished, students will be invited to make a comment to and grade the relevant tutor.<br/>
+        6. User can be both student and tutor, and a tutor can be private tutor, contracted tutor, or both.<br/>
+        7. User can top up their wallet, but only tutor and admin can transfer the money from wallet to their own bank account. (no real payment gateway implemented, of cause).<br/>
+        8. Admin can generate coupon after login the system (username: admin, password: jamsandwich)<br/>
+        9. Student can send private message to tutor, and vice versus.<br/>
+        10. many other features I do not remember at all. Please explorer them!<br/>
+    </p>
     {% if user.profile.isTutor %}
         {% ifnotequal user.profile.tutor.profileCompleteness "100" %}
             Your profile is not completed.<br/>
