@@ -7,10 +7,11 @@ All features:
 sign up/login/logout/forgot password, search tutor, edit profile, book tutor, tutor manage timeslot, internal messaging, email handing, internal transaction, manage timetable, coupon, server side scheduled job
 
 python version: 3.6.3
+
 django version: 1.11.6
 
 Prerequisite install:
-pip install pillow
+pip install -r requirements.txt
 
 admin username: admin
 admin password: jamsandwich
