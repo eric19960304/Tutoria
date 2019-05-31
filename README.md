@@ -10,8 +10,11 @@ python version: 3.6.3
 
 django version: 1.11.6
 
-Prerequisite install:
-pip install -r requirements.txt
+* Prerequisite install:
+
+`python manage.py migrate`
+
+`pip install -r requirements.txt`
 
 admin username: admin
 admin password: jamsandwich
@@ -22,11 +25,13 @@ If the database is reset, the following instance should be created before runnin
 (b) a System instance containing a wallet instance created in (a)
 (c) University instances
 
-To run server:
-python manage.py runserver
+* To run server:
 
-To run session manage command:
-python manage.py managesession >> manage_session_log.txt
+`python manage.py runserver`
+
+* To run session manage command:
+
+`python manage.py managesession >> manage_session_log.txt`
 
 The session manage command will invoke a function that convert the current time to the neartest half hour and manage the sessions by that time. i.e. 9:28 -> 9:30, 10:15:00 -> 10:00, 10:15:01 -> 10:30 ...
 
