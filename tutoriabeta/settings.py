@@ -25,7 +25,7 @@ SECRET_KEY = '5h4sk=gjg-i&5p6g5rwvt2r!=)0$-p$mhe2e_)z5gayl)mzvw='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['demo.coder.faith','localhost','127.0.0.1','coder-faith.c.keen-inscriber-205216.internal']
+ALLOWED_HOSTS = ['demo.coder.faith','coder.faith','localhost','127.0.0.1','coder-faith.c.keen-inscriber-205216.internal']
 
 
 # Application definition
