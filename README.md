@@ -8,7 +8,7 @@ sign up/login/logout/forgot password, search tutor, edit profile, book tutor, tu
 
 python version: 3.6.3
 
-django version: 1.11.6
+django version: 1.11.23
 
 * Prerequisite install:
 
